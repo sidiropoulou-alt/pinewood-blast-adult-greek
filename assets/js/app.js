@@ -578,7 +578,7 @@
     }).join('');
 
     var dg = window.GREEK.digraphs.map(function (d) {
-      return '<tr><td class="grcell"><span class="gr">' + esc(d.gr) + '</span>' + sayBtn(d.ex, 'small') + '</td>' +
+      return '<tr><td class="grcell"><span class="gr">' + esc(d.gr) + '</span></td>' +
         '<td class="en"><code>' + esc(d.ipa) + '</code></td><td class="note">' + esc(d.hint) + '</td>' +
         '<td class="note"><span class="gr">' + esc(d.ex) + '</span> · ' + esc(d.exEn) + '</td></tr>';
     }).join('');
@@ -599,7 +599,7 @@
       '<h2>Τα γράμματα · The letters</h2>' +
       '<div class="alpha-grid">' + letters + '</div>' +
       '<h2 style="margin-top:38px">Two letters, one sound</h2>' +
-      '<p class="small muted">Greek builds sounds from pairs of letters. Learn these twelve and you can read almost anything.</p>' +
+      '<p class="small muted">Greek builds sounds from pairs of letters. Learn these twelve and you can read almost anything. There is no recording for the pairs themselves — a pair is not a word, so listen to the example words instead (they are recorded) and read the sound column aloud.</p>' +
       '<div class="tbl-wrap"><table><thead><tr><th>Pair</th><th>Sounds like</th><th>Rule</th><th>Example</th></tr></thead><tbody>' + dg + '</tbody></table></div>' +
       '<h2 style="margin-top:38px">Rules that make reading easier</h2>' + rules +
       '<div class="tip"><p><b>Say it out loud.</b> Greek is written the way it is spoken, letter by letter. Once you know the 24 letters ' +
