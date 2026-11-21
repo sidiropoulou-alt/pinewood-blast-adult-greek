@@ -152,21 +152,6 @@ hr{border:0;border-top:1px solid var(--line);margin:26px 0}
 .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:#c7e6d3}
 .pill.terra{background:var(--terra-soft);color:#7b4a24;border-color:#f3d6c9}
 
-/* audio buttons */
-.say{
-  display:inline-grid;place-items:center;width:34px;height:34px;flex:none;
-  border-radius:50%;border:1px solid #cfe0c4;background:var(--blue-soft);color:var(--blue-deep);
-  cursor:pointer;vertical-align:middle;margin-left:6px;transition:transform .12s,background .12s;
-  padding:0;
-}
-.say:hover{background:#d3e8f5;transform:scale(1.06)}
-.say:active{transform:scale(.95)}
-.say svg{width:16px;height:16px}
-.say.playing{background:var(--blue);color:#fff;animation:pulse 1.1s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(14,90,138,.45)}50%{box-shadow:0 0 0 7px rgba(14,90,138,0)}}
-.say.small{width:28px;height:28px;margin-left:4px}
-.say.small svg{width:13px;height:13px}
-
 /* hero */
 .hero{
   position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--line);
@@ -376,7 +361,6 @@ td.note{color:var(--muted);font-size:.86rem}
 .tabs button[aria-selected="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
 
 /* misc */
-.audio-legend{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
 .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .phrase-card{border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}
 .phrase-card .g{font-family:var(--serif);font-size:1.1rem}
@@ -481,10 +465,12 @@ td.note{color:var(--muted);font-size:.86rem}
 .book-lesson h3{font-family:var(--serif);font-size:1.35rem;line-height:1.2}
 .book-lesson .pill{margin-top:2px}
 
-/* Temporary voice comparison page */
-.voice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin:22px 0}
-.voice-card{padding:18px 20px}
-.voice-card h2{font-size:1.02rem;margin:0 0 4px}
-.voice-row{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line,rgba(0,0,0,.08))}
-.voice-row audio{width:100%;height:34px}
-@media (min-width:1100px){.voice-row{flex-direction:row;align-items:center;justify-content:space-between}.voice-row>div{min-width:0;padding-right:14px}.voice-row audio{width:230px;flex:none}}
+/* video lessons */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin:18px 0 8px}
+.video-card{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow);min-width:0}
+.video-frame{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
+.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video-card.short{max-width:320px}
+.video-card.short .video-frame{aspect-ratio:9/16}
+.video-card figcaption{margin-top:9px;color:var(--ink-soft);line-height:1.45}
+.video-card figcaption a{color:var(--blue-deep);font-weight:600;white-space:nowrap}

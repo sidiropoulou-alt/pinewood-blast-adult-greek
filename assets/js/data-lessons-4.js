@@ -252,7 +252,7 @@
       ] }
     ],
     homework: [
-      'Practise the whole town-hall dialogue with the audio, playing both roles.',
+      'Practise the whole town-hall dialogue aloud, playing both roles.',
       'Write your own personal details in Greek the way a form would ask.',
       'Learn the eight office phrases by heart — they save whole afternoons.'
     ]

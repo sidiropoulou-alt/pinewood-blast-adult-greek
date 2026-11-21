@@ -15,18 +15,12 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function sayBtn(text, cls) {
-    return '<button class="say ' + (cls || '') + '" type="button" data-say="' + esc(text) +
-      '" aria-label="Listen: ' + esc(text) + '" title="Listen">' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>' +
-      '<path d="M16.5 8.5a5 5 0 010 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>';
-  }
   /* {{g:Καλημέρα}} -> styled Greek + play button */
   function md(html) {
     if (!html) return '';
     return String(html).replace(/\{\{g:([^}]+)\}\}/g, function (_, g) {
       var t = g.trim();
-      return '<span class="gr">' + esc(t) + '</span>' + sayBtn(t, 'small');
+      return '<span class="gr">' + esc(t) + '</span>';
     });
   }
   function normalize(s) {
@@ -44,14 +38,13 @@
 
   /* ---------------- persistence ---------------- */
   var KEY = 'greek-course-v1';
-  var state = { done: {}, scores: {}, audio: true };
+  var state = { done: {}, scores: {} };
   try {
     var raw = localStorage.getItem(KEY);
     if (raw) {
       var saved = JSON.parse(raw);
       state.done = saved.done || {};
       state.scores = saved.scores || {};
-      if (saved.audio === false) state.audio = false;
     }
   } catch (e) { /* storage blocked (e.g. shared preview): run in memory */ }
 
@@ -83,11 +76,8 @@
       block.setAttribute('data-tip-i', nextI);
       var tipEl = block.querySelector('[data-tip]');
       var grEl = block.querySelector('.teacher-gr .gr');
-      var sayEl = block.querySelector('[data-say]');
       if (tipEl) tipEl.textContent = tip.en;
       if (grEl) grEl.textContent = tip.gr;
-      if (sayEl) sayEl.setAttribute('data-say', tip.gr);
-      if (window.Speech) Speech.speak(tip.gr);
       block.classList.add('pop');
       setTimeout(function () { block.classList.remove('pop'); }, 400);
       return;
@@ -102,74 +92,11 @@
       box.querySelector('.who').textContent = t.name + ': ';
       box.querySelector('.what').textContent = tip2.en + ' ';
       box.querySelector('[data-pair-gr]').textContent = tip2.gr;
-      var b2 = box.querySelector('[data-say]');
-      b2.setAttribute('data-say', tip2.gr);
       box.classList.add('show');
-      if (window.Speech) Speech.speak(tip2.gr);
       face.parentNode.classList.add('pop');
       setTimeout(function () { face.parentNode.classList.remove('pop'); }, 400);
     }
   });
-
-  /* ---------------- audio wiring ---------------- */
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-say]');
-    if (btn) {
-      e.preventDefault();
-      Speech.speak(btn.getAttribute('data-say'));
-      btn.classList.add('playing');
-      setTimeout(function () { btn.classList.remove('playing'); }, 1600);
-      return;
-    }
-    var alpha = e.target.closest('[data-play-alphabet]');
-    if (alpha) {
-      e.preventDefault();
-      if (alpha._playing) {
-        alpha._playing = false;
-        Speech.stop();
-        alpha.textContent = '▶ Hear all 24 letters';
-        return;
-      }
-      alpha._playing = true;
-      alpha.textContent = '■ Stop';
-      Speech.sequence(window.GREEK.letters.map(function (l) { return l.name; }), {
-        gap: 300,
-        onend: function () {
-          alpha._playing = false;
-          alpha.textContent = '▶ Hear all 24 letters';
-        }
-      });
-      return;
-    }
-    var play = e.target.closest('[data-play-dialogue]');
-    if (play) { playDialogue(play); }
-  });
-
-  function playDialogue(btn) {
-    var dlg = btn.closest('.dialogue');
-    if (!dlg) return;
-    var lines = $$('.dlg-line', dlg);
-    var i = 0;
-    btn.textContent = '■ Stop';
-    function next() {
-      if (i >= lines.length) { btn.textContent = '▶ Play all'; clearHighlight(); return; }
-      var line = lines[i++];
-      clearHighlight();
-      line.classList.add('speaking');
-      var t = line.getAttribute('data-g');
-      Speech.speak(t, { rate: 0.8, force: true, onend: function () { setTimeout(next, 260); } });
-    }
-    function clearHighlight() { lines.forEach(function (l) { l.classList.remove('speaking'); }); }
-    if (btn._playing) { btn._playing = false; Speech.stop(); clearHighlight(); btn.textContent = '▶ Play all'; return; }
-    btn._playing = true;
-    var orig = next;
-    next = function () {
-      if (!btn._playing) return;
-      if (i >= lines.length) { btn._playing = false; clearHighlight(); btn.textContent = '▶ Play all'; return; }
-      orig();
-    };
-    next();
-  }
 
   /* ---------------- chrome ---------------- */
   var sidebar = $('#sidebar'), scrim = $('#scrim'), menuBtn = $('#menuBtn');
@@ -188,24 +115,13 @@
   });
   scrim.addEventListener('click', closeMenu);
 
-  var audioToggle = $('#audioToggle');
   function paintChrome() {
     $('#streakChip').textContent = doneCount() + ' / ' + DAYS.length;
-    audioToggle.setAttribute('aria-pressed', String(state.audio));
-    audioToggle.style.opacity = state.audio ? '1' : '.5';
     $$('#navDays a').forEach(function (a) {
       var d = Number(a.getAttribute('data-day'));
       a.classList.toggle('done', !!state.done[d]);
     });
   }
-  audioToggle.addEventListener('click', function () {
-    state.audio = !state.audio;
-    Speech.setEnabled(state.audio);
-    save();
-    paintChrome();
-    toast(state.audio ? 'Greek audio on 🔊' : 'Greek audio off');
-  });
-  Speech.setEnabled(state.audio);
 
   function buildNav() {
     var groups = {};
@@ -243,7 +159,6 @@
     else if (r.name === 'dialogues') html = pageDialogues();
     else if (r.name === 'book') html = pageBook();
     else if (r.name === 'progress') html = pageProgress();
-    else if (r.name === 'voices') html = pageVoices();
     else html = pageHome();
 
     var main = $('#main');
@@ -284,10 +199,9 @@
               '</span><span>' + esc(o) + '</span></button>';
           }).join('') + '</div><div class="fb"></div></div>';
       }
-      var audio = it.say ? sayBtn(it.say, 'small') : '';
       return '<div class="q" data-i="' + i + '">' + stem +
         '<div class="row"><input class="answer-input" type="text" autocomplete="off" spellcheck="false" ' +
-        'placeholder="' + esc(it.placeholder || 'Type in Greek…') + '" aria-label="Your answer">' + audio +
+        'placeholder="' + esc(it.placeholder || 'Type in Greek…') + '" aria-label="Your answer">' +
         '</div><div class="fb"></div></div>';
     }).join('');
     return '<div class="quiz" id="' + id + '" data-day="' + (day || '') + '">' +
@@ -425,7 +339,7 @@
     return '<div class="tbl-wrap"><table><thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') +
       '</tr></thead><tbody>' + rows.map(function (r) {
         return '<tr>' + r.map(function (c, i) {
-          if (i === 0) return '<td class="grcell"><span class="gr">' + esc(c) + '</span>' + sayBtn(c, 'small') + '</td>';
+          if (i === 0) return '<td class="grcell"><span class="gr">' + esc(c) + '</span>' + '</td>';
           return '<td class="' + (i === 1 ? 'en' : 'note') + '">' + esc(c) + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div>';
@@ -472,7 +386,7 @@
       '<div><b>' + DAYS.length + '</b><span>lessons</span></div>' +
       '<div><b>' + totalQs + '+</b><span>exercises</span></div>' +
       '<div><b>' + totalWords + '+</b><span>words</span></div>' +
-      '<div><b>α</b><span>audio everywhere</span></div>' +
+      '<div><b>3</b><span>video lessons</span></div>' +
       '</div>' +
       '<div class="row" style="margin-top:22px">' +
       '<a class="btn" href="#/day/' + (firstUnfinished()) + '">' + (doneCount() ? 'Continue' : 'Start Day 1') + ' →</a>' +
@@ -491,7 +405,7 @@
       '<h3>How this course works</h3>' +
       '<ol class="small" style="padding-left:1.2em;margin:0">' +
       '<li><b>10–20 minutes a day.</b> Each day is one short lesson: listen, read, then practise.</li>' +
-      '<li><b>Tap the 🔊 buttons.</b> Every Greek word and phrase can be heard.</li>' +
+      '<li><b>Watch, listen, repeat.</b> Each reference page has a Greek video; play it twice and read along.</li>' +
       '<li><b>Finish with the quiz.</b> Score 60% or more and the day is marked complete.</li>' +
       '<li><b>Come back tomorrow.</b> Repetition across weeks is what makes it stick.</li>' +
       '</ol></div>' +
@@ -506,7 +420,7 @@
       '<p class="small muted" style="margin:0 0 12px">Six habits that matter more than talent — all of them fit around a job and a family.</p>' +
       '<div class="grid three">' +
       '<div><b class="small">1 · Little and often</b><p class="small" style="margin:.3em 0 0">Fifteen minutes six days a week beats two hours on Sunday. Your brain keeps Greek alive between sessions.</p></div>' +
-      '<div><b class="small">2 · Say it out loud</b><p class="small" style="margin:.3em 0 0">Reading silently builds recognition, not speech. Repeat every 🔊 until your mouth knows the shape of the word.</p></div>' +
+      '<div><b class="small">2 · Say it out loud</b><p class="small" style="margin:.3em 0 0">Reading silently builds recognition, not speech. Repeat every phrase aloud until your mouth knows the shape of the word.</p></div>' +
       '<div><b class="small">3 · Learn phrases, not lists</b><p class="small" style="margin:.3em 0 0">Store <span class="gr">Θα ήθελα έναν καφέ, παρακαλώ</span> as one block. Grammar comes later from the blocks you already own.</p></div>' +
       '<div><b class="small">4 · Keep one notebook</b><p class="small" style="margin:.3em 0 0">Three columns: Greek, English, and a sentence of your own. Writing by hand slows you down enough to notice endings.</p></div>' +
       '<div><b class="small">5 · Make mistakes early</b><p class="small" style="margin:.3em 0 0">Adults wait to be perfect; children just talk. A wrong ending that gets you a coffee is a success, not a failure.</p></div>' +
@@ -535,18 +449,27 @@
       refCard('#/alphabet', '🔤', 'Alphabet &amp; sounds', '24 letters, digraphs, stress, reading rules.') +
       refCard('#/book', '📘', 'Book map · lessons 1–10', 'What you already know from Greek for you A1, with 100 words.') +
       refCard('#/grammar', '📐', 'Present tense', 'Every ending, every irregular verb, explained in English.') +
-      refCard('#/vocab', '📚', 'Vocabulary', 'Themed word lists with audio — food, travel, health, work.') +
+      refCard('#/vocab', '📚', 'Vocabulary', 'Themed word lists — food, travel, health, work.') +
       refCard('#/phrasebook', '💬', 'Phrasebook', 'What to say at the airport, café, doctor, hotel.') +
-      refCard('#/dialogues', '🗣️', 'Dialogues', 'Sixteen conversations with play-all audio.') +
+      refCard('#/dialogues', '🗣️', 'Dialogues', 'Sixteen conversations to read, hear and act out.') +
       refCard('#/progress', '📊', 'My progress', 'Your month at a glance.') +
-      refCard('#/voices', '🎧', 'Voice test · Δοκιμή φωνών', 'Temporary: compare five Greek voices and pick the one for the course.') +
+      '</div>' +
+
+      '<h2 style="margin-top:38px">Video lessons · Βίντεο</h2>' +
+      '<p class="small muted">Short, clear lessons from Greek teachers — watch once, then read the page that goes with it.</p>' +
+      '<div class="video-grid">' +
+      videoEmbed('T2n0k2tUHYs', 'Το Νεοελληνικό Αλφάβητο · The Modern Greek Alphabet', 'Μιλάω Ελληνικά') +
+      videoEmbed('e46eBGKW2nk', 'Το Ρήμα Είμαι · The Verb To Be', 'Μιλάω Ελληνικά', true) +
+      videoEmbed('QSVx0_fMS64', 'Δίψηφα φωνήεντα · Double vowels', 'Quite Greek') +
+      videoEmbed('D6ZLituTWpA', 'Ο Ενεστώτας · The Present Tense', 'Μιλάω Ελληνικά') +
+      videoEmbed('LgHRNjvBhNc', 'Οι Χαιρετισμοί · Greetings', 'Μιλάω Ελληνικά') +
+      videoEmbed('vs5MsJKt5wQ', 'Δίψηφα σύμφωνα · Double consonants', 'Quite Greek') +
       '</div>' +
 
       '<div class="note-box" style="margin-top:26px">' +
-      '<p><b>About the audio.</b> The site uses the Greek text-to-speech voice built into your browser or phone. ' +
-      'On most Android and iOS devices and in Chrome and Edge a Greek voice is available; if you hear an English accent, ' +
-      'install a Greek voice in your device settings (Android: Settings → System → Languages → Text-to-speech → install Greek; ' +
-      'iPhone: Settings → Accessibility → Spoken Content → Voices → Greek).</p>' +
+      '<p><b>About the videos.</b> The lessons are taught with real Greek videos from two YouTube teachers: ' +
+      '<i>Μιλάω Ελληνικά</i> (alphabet, greetings, the present tense, the verb είμαι) and <i>Quite Greek</i> (the digraphs). They need an internet ' +
+      'connection; if a video does not load inside the page, use the title link above it to open it on YouTube.</p>' +
       '<p class="small"><b>Progress</b> is stored in this browser only. In a shared preview it may not be kept — for a month of study, ' +
       'download the site and open it on your own device.</p></div>' +
 
@@ -561,6 +484,16 @@
       '<p class="small muted" style="margin:0">' + text + '</p></a>';
   }
 
+  function videoEmbed(id, title, sub, short) {
+    var url = 'https://www.youtube.com/watch?v=' + id;
+    return '<figure class="video-card' + (short ? ' short' : '') + '">' +
+      '<div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '" title="' + esc(title) + '" ' +
+      'loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+      'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>' +
+      '<figcaption class="small"><b>' + esc(title) + '</b>' + (sub ? ' · ' + esc(sub) : '') +
+      ' · <a href="' + url + '" target="_blank" rel="noopener">YouTube ↗</a></figcaption></figure>';
+  }
+
   function firstUnfinished() {
     for (var i = 0; i < DAYS.length; i++) if (!state.done[DAYS[i].day]) return DAYS[i].day;
     return 1;
@@ -570,12 +503,12 @@
   function pageAlphabet() {
     var letters = window.GREEK.letters.map(function (L) {
       return '<div class="alpha-card">' +
-        '<div class="big">' + L.u + ' ' + L.l + sayBtn(L.name) + '</div>' +
+        '<div class="big">' + L.u + ' ' + L.l + '</div>' +
         '<div class="name">' + esc(L.name) + '</div>' +
         '<div class="ipa">' + esc(L.ipa) + '</div>' +
         '<div class="hint">' + L.hint + '</div>' +
         '<div class="hint" style="margin-top:6px"><span class="gr">' + esc(L.ex) + '</span> · ' + esc(L.exEn) +
-        sayBtn(L.ex, 'small') + '</div>' +
+         + '</div>' +
         '</div>';
     }).join('');
 
@@ -593,15 +526,20 @@
       '<h1>The Greek alphabet &amp; sounds</h1>' +
       '<p class="lead">Twenty-four letters, twenty-four sounds — but only five vowel sounds. Learn the sounds first and Greek spelling ' +
       'stops being mysterious.</p>' +
-      '<div class="row" style="margin:18px 0 10px"><a class="btn" href="#/day/1">Practise this in Day 1 →</a>' +
-      '<button class="btn ghost" type="button" data-play-alphabet>▶ Hear all 24 letters</button>' +
-      '<span class="audio-legend">' + sayBtn('α', 'small') + ' tap a letter to hear its Greek name</span></div>' +
-      '<p class="small muted" style="margin:0 0 26px">Every letter and example below is a real Greek recording, ' +
-      'so it sounds Greek even if your computer has no Greek voice installed.</p>' +
+      '<div class="row" style="margin:18px 0 10px"><a class="btn" href="#/day/1">Practise this in Day 1 →</a></div>' +
+      '<h2>Watch the alphabet · Δες το αλφάβητο</h2>' +
+      '<div class="video-grid">' +
+      videoEmbed('T2n0k2tUHYs', 'Το Νεοελληνικό Αλφάβητο · The Modern Greek Alphabet', 'Μιλάω Ελληνικά') +
+      '</div>' +
       '<h2>Τα γράμματα · The letters</h2>' +
       '<div class="alpha-grid">' + letters + '</div>' +
       '<h2 style="margin-top:38px">Two letters, one sound</h2>' +
-      '<p class="small muted">Greek builds sounds from pairs of letters. Learn these twelve and you can read almost anything. There is no recording for the pairs themselves — a pair is not a word, so listen to the example words instead (they are recorded) and read the sound column aloud.</p>' +
+      '<p class="small muted">Greek builds sounds from pairs of letters. Learn these twelve and you can read almost anything. Watch each pair being pronounced, then read the table aloud.</p>' +
+      '<div class="video-grid">' +
+      videoEmbed('QSVx0_fMS64', 'Δίψηφα φωνήεντα · Double vowels', 'Quite Greek') +
+      videoEmbed('vs5MsJKt5wQ', 'Δίψηφα σύμφωνα · Double consonants', 'Quite Greek') +
+      videoEmbed('_9oqbN0fuXs', 'Συνδυασμοί αυ και ευ · αυ and ευ', 'Quite Greek') +
+      '</div>' +
       '<div class="tbl-wrap"><table><thead><tr><th>Pair</th><th>Sounds like</th><th>Rule</th><th>Example</th></tr></thead><tbody>' + dg + '</tbody></table></div>' +
       '<h2 style="margin-top:38px">Rules that make reading easier</h2>' + rules +
       '<div class="tip"><p><b>Say it out loud.</b> Greek is written the way it is spoken, letter by letter. Once you know the 24 letters ' +
@@ -612,44 +550,11 @@
   function conjBlock(rows) {
     return '<div class="conj">' + rows.map(function (r) {
       return '<div class="cell"><span class="pron">' + esc(r[0]) + '</span>' +
-        '<span class="form">' + esc(r[1]) + sayBtn(r[1], 'small') + '</span>' +
+        '<span class="form">' + esc(r[1]) + '</span>' +
         '<span class="gloss">' + esc(r[2]) + '</span></div>';
     }).join('') + '</div>';
   }
   window.conjBlock = conjBlock;
-
-  /* Temporary: voice comparison page. Removed once a voice is chosen. */
-  function pageVoices() {
-    var clips = [
-      ['letters', 'Τα γράμματα', 'The letters: άλφα, βήτα, γάμα, δέλτα'],
-      ['word', 'Μια λέξη', 'One word: Καλημέρα!'],
-      ['sent', 'Μια πρόταση', 'A sentence: Τι κάνεις σήμερα;'],
-      ['phrase', 'Μια φράση', 'A phrase: Θα ήθελα έναν καφέ, παρακαλώ.']
-    ];
-    var voices = [
-      ['athina', 'Athina — η σημερινή φωνή', 'Athina, the voice the course uses now'],
-      ['slow', 'Athina — πιο αργή και ζεστή', 'Athina, 15% slower and slightly lower (easier for learners)'],
-      ['nestoras', 'Nestoras — ανδρική φωνή', 'Nestoras, male voice'],
-      ['piper', 'Joy — τοπική φωνή', 'Joy, local/offline voice (Piper)'],
-      ['gtts', 'Google — gTTS', 'Google Translate voice (gTTS)']
-    ];
-    var out = '<h1>Δοκιμή φωνών · Voice test</h1>' +
-      '<p class="lead">Άκουσε την ίδια φράση σε κάθε φωνή και διάλεξε ποια σου ακούγεται πιο καθαρή και πιο σωστή στα ελληνικά. ' +
-      'Η σελίδα είναι <strong>προσωρινή</strong> — μόλις διαλέξεις, ξαναγράφω όλο το μάθημα με αυτή τη φωνή και τη σβήνω.</p>' +
-      '<div class="voice-grid">';
-    voices.forEach(function (v) {
-      out += '<section class="card voice-card"><h2>' + esc(v[1]) + '</h2>' +
-        '<p class="small muted">' + esc(v[2]) + '</p>';
-      clips.forEach(function (c) {
-        out += '<div class="voice-row"><div><span class="gr">' + esc(c[1]) + '</span>' +
-          '<div class="small muted">' + esc(c[2]) + '</div></div>' +
-          '<audio controls preload="none" src="assets/audio/samples/' + v[0] + '_' + c[0] + '.mp3"></audio></div>';
-      });
-      out += '</section>';
-    });
-    out += '</div>';
-    return out;
-  }
 
   function pageGrammar() {
     var g = REF.grammar || {};
@@ -657,6 +562,10 @@
       '<h1>The present tense · Ο ενεστώτας</h1>' +
       '<p class="lead">One tense, two English meanings: Greek <span class="gr">γράφω</span> is both “I write” and “I am writing”. ' +
       'This is the tense you will use most in your first year, and it is wonderfully regular.</p>' +
+      '<h2>Watch: the present tense · Ο ενεστώτας</h2>' +
+      '<div class="video-grid">' +
+      videoEmbed('D6ZLituTWpA', 'Ενεργητική Φωνή · Ενεστώτας | Active Voice · Present Tense', 'Μιλάω Ελληνικά') +
+      '</div>' +
       '<div data-tabs>' +
       '<div class="tabs" role="tablist" style="margin-top:20px">' +
       '<button role="tab" aria-selected="true" data-tab="a">The basics</button>' +
@@ -679,8 +588,8 @@
     return '<div class="card"><h2 style="margin-top:0">What the present tense does</h2>' +
       '<p>Greek has one present tense where English has two:</p>' +
       '<div class="tbl-wrap"><table><thead><tr><th>Greek</th><th>English</th></tr></thead><tbody>' +
-      '<tr><td class="grcell"><span class="gr">Δουλεύω στην Αθήνα.</span>' + sayBtn('Δουλεύω στην Αθήνα.', 'small') + '</td><td class="en">I work in Athens. / I am working in Athens.</td></tr>' +
-      '<tr><td class="grcell"><span class="gr">Πίνω καφέ.</span>' + sayBtn('Πίνω καφέ.', 'small') + '</td><td class="en">I drink coffee. / I’m drinking coffee.</td></tr>' +
+      '<tr><td class="grcell"><span class="gr">Δουλεύω στην Αθήνα.</span>' + '</td><td class="en">I work in Athens. / I am working in Athens.</td></tr>' +
+      '<tr><td class="grcell"><span class="gr">Πίνω καφέ.</span>' + '</td><td class="en">I drink coffee. / I’m drinking coffee.</td></tr>' +
       '</tbody></table></div>' +
       '<p class="small muted" style="margin-top:12px">Context tells you which English translation fits: <span class="gr">κάθε μέρα</span> (every day) → “I drink”; <span class="gr">τώρα</span> (now) → “I’m drinking”.</p></div>' +
 
@@ -691,7 +600,7 @@
        ['3rd singular', 'αυτός / αυτή / αυτό', 'he / she / it'],
        ['1st plural', 'εμείς', 'we'], ['2nd plural', 'εσείς', 'you (plural or polite)'],
        ['3rd plural', 'αυτοί / αυτές / αυτά', 'they (m / f / n)']].map(function (r) {
-        return '<tr><td class="note">' + r[0] + '</td><td class="grcell"><span class="gr">' + r[1] + '</span>' + sayBtn(r[1], 'small') + '</td><td class="en">' + r[2] + '</td></tr>';
+        return '<tr><td class="note">' + r[0] + '</td><td class="grcell"><span class="gr">' + r[1] + '</span>' + '</td><td class="en">' + r[2] + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       '<div class="note-box"><p><b>You, politely.</b> Use <span class="gr">εσείς</span> with strangers, older people, shopkeepers and officials — ' +
       'it takes the plural verb form even for one person. <span class="gr">Τι κάνετε;</span> is the polite “How are you?”; ' +
@@ -716,7 +625,7 @@
 
   function vocabularyGrid(rows) {
     return '<div class="flash-grid">' + rows.map(function (r) {
-      return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(r[0]) + '</span>' + sayBtn(r[0], 'small') + '</div>' +
+      return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(r[0]) + '</span>' + '</div>' +
         '<div class="e">' + esc(r[1]) + '</div></div>';
     }).join('') + '</div>';
   }
@@ -729,7 +638,7 @@
        ['εμείς (we)', '-ουμε', 'δουλεύουμε'], ['εσείς (you pl./polite)', '-ετε', 'δουλεύετε'], ['αυτοί/ές/ά (they)', '-ουν', 'δουλεύουν']]
         .map(function (r) {
           return '<tr><td class="note">' + r[0] + '</td><td class="en"><code>' + r[1] + '</code></td>' +
-            '<td class="grcell"><span class="gr">' + r[2] + '</span>' + sayBtn(r[2], 'small') + '</td></tr>';
+            '<td class="grcell"><span class="gr">' + r[2] + '</span>' + '</td></tr>';
         }).join('') +
       '</tbody></table></div></div>' +
       [['κάνω', 'do, make', [['εγώ', 'κάνω'], ['εσύ', 'κάνεις'], ['αυτός/ή/ό', 'κάνει'], ['εμείς', 'κάνουμε'], ['εσείς', 'κάνετε'], ['αυτοί/ές/ά', 'κάνουν']]],
@@ -760,8 +669,8 @@
        ['εσείς', '-άτε / -είτε', 'μιλάτε', 'αγαπάτε'], ['αυτοί', '-άνε / -ούν', 'μιλάνε', 'αγαπάνε']]
         .map(function (r) {
           return '<tr><td class="note">' + r[0] + '</td><td class="en"><code>' + r[1] + '</code></td>' +
-            '<td class="grcell"><span class="gr">' + r[2] + '</span>' + sayBtn(r[2], 'small') + '</td>' +
-            '<td class="grcell"><span class="gr">' + r[3] + '</span>' + sayBtn(r[3], 'small') + '</td></tr>';
+            '<td class="grcell"><span class="gr">' + r[2] + '</span>' + '</td>' +
+            '<td class="grcell"><span class="gr">' + r[3] + '</span>' + '</td></tr>';
         }).join('') + '</tbody></table></div>' +
       '<div class="tip"><p><b>Two accepted versions.</b> Most -άω verbs also have a formal -ώ form: <span class="gr">μιλάω / μιλώ</span>, ' +
       '<span class="gr">μιλάς / μιλείς</span>, <span class="gr">μιλάει / μιλεί</span>. The -άω forms are what you will hear in shops, ' +
@@ -789,6 +698,11 @@
       '</div><p class="small muted" style="margin-top:14px"><span class="gr">είστε</span> and <span class="gr">είσαστε</span> are both ' +
       'correct; <span class="gr">είστε</span> is more usual.</p></div>' +
 
+      '<h3>Watch: the verb είμαι · Το ρήμα είμαι</h3>' +
+      '<div class="video-grid">' +
+      videoEmbed('e46eBGKW2nk', 'Το Ρήμα Είμαι · The Verb To Be', 'Μιλάω Ελληνικά', true) +
+      '</div>' +
+
       '<div class="card"><h2 style="margin-top:0">Contracted verbs: πάω, λέω, τρώω, ακούω, μπορώ</h2>' +
       '<p>These lose a vowel when an ending is added. They are among the most frequent verbs in Greek, so learn the six forms by heart.</p>' +
       '<div class="grid two">' +
@@ -804,10 +718,10 @@
       '<div class="card"><h2 style="margin-top:0">Small but vital: θέλω / μπορώ / ξέρω + να</h2>' +
       '<p>To say what you want, can or know how to do, use <b>να</b> + the verb in the same person:</p>' +
       '<div class="grid two">' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Θέλω να πάω σπίτι.</span>' + sayBtn('Θέλω να πάω σπίτι.', 'small') + '</div><div class="e">I want to go home.</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Μπορώ να μιλήσω αγγλικά;</span>' + sayBtn('Μπορώ να μιλήσω αγγλικά;', 'small') + '</div><div class="e">Can I speak English?</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Ξέρω να μαγειρεύω.</span>' + sayBtn('Ξέρω να μαγειρεύω.', 'small') + '</div><div class="e">I know how to cook.</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Δεν θέλω να πάω.</span>' + sayBtn('Δεν θέλω να πάω.', 'small') + '</div><div class="e">I don’t want to go.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Θέλω να πάω σπίτι.</span>' + '</div><div class="e">I want to go home.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Μπορώ να μιλήσω αγγλικά;</span>' + '</div><div class="e">Can I speak English?</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Ξέρω να μαγειρεύω.</span>' + '</div><div class="e">I know how to cook.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Δεν θέλω να πάω.</span>' + '</div><div class="e">I don’t want to go.</div></div>' +
       '</div></div>';
   }
 
@@ -815,10 +729,10 @@
     return '<div class="card"><h2 style="margin-top:0">Saying no: δεν</h2>' +
       '<p>Put <b>δεν</b> directly before the verb. That is the whole rule.</p>' +
       '<div class="grid two">' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Δεν καταλαβαίνω.</span>' + sayBtn('Δεν καταλαβαίνω.', 'small') + '</div><div class="e">I don’t understand.</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Δεν είμαι από την Ελλάδα.</span>' + sayBtn('Δεν είμαι από την Ελλάδα.', 'small') + '</div><div class="e">I’m not from Greece.</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Δεν έχω χρόνο.</span>' + sayBtn('Δεν έχω χρόνο.', 'small') + '</div><div class="e">I don’t have time.</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Δεν μιλάω καλά ελληνικά.</span>' + sayBtn('Δεν μιλάω καλά ελληνικά.', 'small') + '</div><div class="e">I don’t speak Greek well.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Δεν καταλαβαίνω.</span>' + '</div><div class="e">I don’t understand.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Δεν είμαι από την Ελλάδα.</span>' + '</div><div class="e">I’m not from Greece.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Δεν έχω χρόνο.</span>' + '</div><div class="e">I don’t have time.</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Δεν μιλάω καλά ελληνικά.</span>' + '</div><div class="e">I don’t speak Greek well.</div></div>' +
       '</div>' +
       '<div class="warn"><p><b>δεν or μη;</b> Use <b>δεν</b> with statements and questions. Use <b>μην</b> (or <b>μη</b> before a vowel) ' +
       'after <span class="gr">να</span> and in commands: <span class="gr">Μην το κάνεις!</span> “Don’t do it!” · ' +
@@ -830,10 +744,10 @@
       '<p>No auxiliary verb and no word-order change: keep the sentence as it is and raise your voice at the end. In writing, the Greek ' +
       'question mark <b>;</b> does the job.</p>' +
       '<div class="grid two">' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Μιλάς ελληνικά;</span>' + sayBtn('Μιλάς ελληνικά;', 'small') + '</div><div class="e">Do you speak Greek?</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Είσαι από την Αγγλία;</span>' + sayBtn('Είσαι από την Αγγλία;', 'small') + '</div><div class="e">Are you from England?</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Έχεις παιδιά;</span>' + sayBtn('Έχεις παιδιά;', 'small') + '</div><div class="e">Do you have children?</div></div>' +
-      '<div class="phrase-card"><div class="g"><span class="gr">Πάμε στην παραλία;</span>' + sayBtn('Πάμε στην παραλία;', 'small') + '</div><div class="e">Shall we go to the beach?</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Μιλάς ελληνικά;</span>' + '</div><div class="e">Do you speak Greek?</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Είσαι από την Αγγλία;</span>' + '</div><div class="e">Are you from England?</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Έχεις παιδιά;</span>' + '</div><div class="e">Do you have children?</div></div>' +
+      '<div class="phrase-card"><div class="g"><span class="gr">Πάμε στην παραλία;</span>' + '</div><div class="e">Shall we go to the beach?</div></div>' +
       '</div>' +
       '<h3 style="margin-top:22px">Question words</h3>' +
       '<div class="tbl-wrap"><table><thead><tr><th>Greek</th><th>English</th><th>Example</th></tr></thead><tbody>' +
@@ -845,7 +759,7 @@
        ['πώς', 'how', 'Πώς λέγεται; — What is it called?'],
        ['πόσο', 'how much', 'Πόσο κάνει; — How much does it cost?']
       ].map(function (r) {
-        return '<tr><td class="grcell"><span class="gr">' + r[0] + '</span>' + sayBtn(r[0], 'small') + '</td>' +
+        return '<tr><td class="grcell"><span class="gr">' + r[0] + '</span>' + '</td>' +
           '<td class="en">' + r[1] + '</td><td class="note">' + r[2] + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       '<div class="note-box"><p><b>Τι κάνεις;</b> is not “what are you making?” — it is the standard “how are you?”. ' +
@@ -877,7 +791,7 @@
         '<div style="margin-top:16px">' + vocabTable(g.rows) + '</div></div></div>';
     }).join('');
     return '<span class="kicker">Reference</span><h1>Vocabulary</h1>' +
-      '<p class="lead">Themed lists with audio. Tap any speaker to hear the word; tap the Greek text to repeat it slowly.</p>' +
+      '<p class="lead">Themed lists for the situations you meet every week. Read each word aloud twice, cover the English, then test yourself.</p>' +
       '<div data-tabs><div class="tabs">' + tabs + '</div>' + panels + '</div>' +
       '<div class="tip"><p><b>How to learn a list.</b> Read each word aloud three times, cover the English, then say the meaning. ' +
       'Come back to the same list two days later — spacing beats cramming.</p></div>';
@@ -894,7 +808,7 @@
         '<div class="card"><h2 style="margin-top:0">' + (g.icon ? g.icon + ' ' : '') + esc(g.situation) + '</h2>' +
         '<p class="small muted"><span class="gr">' + esc(g.gr) + '</span></p>' +
         '<div style="display:grid;gap:10px;margin-top:14px">' + g.items.map(function (it) {
-          return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(it.g) + '</span>' + sayBtn(it.g, 'small') + '</div>' +
+          return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(it.g) + '</span>' + '</div>' +
             '<div class="e">' + esc(it.e) + '</div>' + (it.u ? '<div class="u">' + esc(it.u) + '</div>' : '') + '</div>';
         }).join('') + '</div>' +
         (g.tip ? '<div class="tip" style="margin-top:16px"><p>' + md(g.tip) + '</p></div>' : '') +
@@ -903,6 +817,10 @@
     return '<span class="kicker">Reference · survival Greek</span><h1>Phrasebook</h1>' +
       '<p class="lead">What to say when you need it — at the airport, the café, the pharmacy or the town hall. ' +
       'Short phrases, with the polite forms marked.</p>' +
+      '<h2>Watch: greetings · Οι χαιρετισμοί</h2>' +
+      '<div class="video-grid">' +
+      videoEmbed('LgHRNjvBhNc', 'Οι Χαιρετισμοί Στα Ελληνικά | The Greetings In Greek', 'Μιλάω Ελληνικά') +
+      '</div>' +
       '<div data-tabs><div class="tabs">' + tabs + '</div>' + panels + '</div>';
   }
 
@@ -910,13 +828,13 @@
     var dlgId = 'dlg-' + (d.id || Math.random().toString(36).slice(2));
     return '<div class="dialogue" id="' + dlgId + '">' +
       '<div class="dlg-head"><div><b>' + esc(d.title) + '</b><div class="small muted"><span class="gr">' + esc(d.gr) + '</span></div></div>' +
-      '<button class="btn small ghost" type="button" data-play-dialogue>▶ Play all</button></div>' +
+      '<span class="pill blue">' + d.lines.length + ' lines</span></div>' +
       '<div class="dlg-lines">' + d.lines.map(function (l, i) {
         var colour = ['#0e5a8a', '#c0562f', '#6b7f3f', '#8a5fa8'][i % 4];
         return '<div class="dlg-line" data-g="' + esc(l.g) + '">' +
           '<span class="dlg-avatar" style="background:' + colour + '">' + esc(l.s.charAt(0)) + '</span>' +
           '<span class="dlg-who">' + esc(l.s) + '</span>' +
-          '<span class="dlg-body"><div class="g"><span class="gr">' + esc(l.g) + '</span>' + sayBtn(l.g, 'small') + '</div>' +
+          '<span class="dlg-body"><div class="g"><span class="gr">' + esc(l.g) + '</span>' + '</div>' +
           '<div class="e">' + esc(l.e) + '</div></span></div>';
       }).join('') + '</div></div>';
   }
@@ -926,9 +844,9 @@
     var list = REF.dialogues || [];
     return '<span class="kicker">Listening &amp; speaking</span><h1>Dialogues</h1>' +
       '<p class="lead">Short conversations, from the port of Aegina to a doctor’s waiting room. ' +
-      'Read the Greek, check the English, then press <b>Play all</b> and follow the highlighted line.</p>' +
+      'Read the Greek, check the English, then read both parts aloud with a partner.</p>' +
       '<div class="row" style="margin:16px 0 26px"><span class="pill blue">' + list.length + ' dialogues</span>' +
-      '<span class="small muted">every line has its own speaker button</span></div>' +
+      '<span class="small muted">read each line aloud · alternate the roles</span></div>' +
       list.map(function (d) {
         return '<div class="section"><div class="spread" style="margin-bottom:8px">' +
           '<h2 style="margin:0">' + esc(d.title) + '</h2><span class="pill">' + esc(d.level || 'A1') + '</span></div>' +
@@ -965,7 +883,7 @@
       '<h1>Lessons 1–10: what you already know</h1>' +
       '<p class="lead">You have finished the first ten lessons of <i>Greek for you A1</i>. ' +
       'Here is the whole of it in one place: the ten lessons, what each one lets you do, and <b>' + B.wordCount +
-      ' key words</b> with audio — plus the days of this site that revise them.</p>' +
+      ' key words</b> — plus the days of this site that revise them.</p>' +
       '<div class="note-box" style="margin-bottom:22px"><p class="small" style="margin:0">' + B.note + '</p></div>' +
       (window.teacherPair ? window.teacherPair() : '') +
       '<div class="book-grid">' + lessons + '</div>' +
@@ -973,7 +891,7 @@
       '<h3 style="margin:0 0 6px">' + esc(B.next.title) + '</h3>' +
       '<p class="small" style="margin:0">' + B.next.text + '</p></div>' +
       '<p class="tiny muted" style="margin-top:18px">Words are given in the form you will use in class. ' +
-      'Tap 🔊 on any row to hear it, and say it back twice before you move on.</p>';
+      'Read each word aloud twice before you move on — your mouth remembers what your eyes skip.</p>';
   }
 
   function pageProgress() {
@@ -1001,11 +919,8 @@
       '<div class="tbl-wrap"><table><thead><tr><th>Day</th><th>Lesson</th><th>Status</th><th>Best quiz</th></tr></thead><tbody>' +
       rows + '</tbody></table></div></div>' +
       '<div class="card"><h2 style="margin-top:0">Settings</h2>' +
-      '<p class="small">Greek audio: <b>' + (state.audio ? 'on' : 'off') + '</b> · Greek voice detected: <b>' +
-      (Speech.hasGreekVoice() ? 'yes' : 'no') + '</b></p>' +
       '<p class="small muted">Progress is saved in this browser only. Clearing site data erases it. ' +
-      'If no Greek voice was found, install one in your operating system’s speech settings — on Windows, ' +
-      'Settings → Time &amp; Language → Speech → Add voices → Ελληνικά.</p>' +
+      'Videos are embedded from YouTube and need an internet connection.</p>' +
       '<button class="btn ghost small" type="button" id="resetProgress">Reset my progress</button></div>';
   }
 
@@ -1019,7 +934,7 @@
   });
 
   window.UI = {
-    $: $, $$: $$, esc: esc, md: md, sayBtn: sayBtn, normalize: normalize,
+    $: $, $$: $$, esc: esc, md: md, normalize: normalize,
     vocabTable: vocabTable, conjBlock: conjBlock, dialogueBlock: dialogueBlock, vocabularyGrid: vocabularyGrid
   };
 

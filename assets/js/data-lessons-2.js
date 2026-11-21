@@ -91,7 +91,7 @@
       'Ask about age, price and phone numbers'
     ],
     sections: [
-      { t: 'numbers', title: '0 – 10, with audio', items: [
+      { t: 'numbers', title: '0 – 10, read aloud', items: [
         ['0', 'μηδέν', 'midén'], ['1', 'ένα', 'éna'], ['2', 'δύο', 'dýo'], ['3', 'τρία', 'tría'],
         ['4', 'τέσσερα', 'téssera'], ['5', 'πέντε', 'pénte'], ['6', 'έξι', 'éxi'], ['7', 'επτά', 'eptá'],
         ['8', 'οκτώ', 'októ'], ['9', 'εννέα', 'ennéa'], ['10', 'δέκα', 'déka']

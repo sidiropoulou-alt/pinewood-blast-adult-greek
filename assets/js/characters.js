@@ -122,8 +122,7 @@
       '<div class="teacher-body">' +
       '<p class="teacher-name"><b>' + t.name + '</b> <span>· ' + t.role + '</span></p>' +
       '<p class="teacher-tip" data-tip>' + tip.en + '</p>' +
-      '<p class="teacher-gr"><span class="gr">' + tip.gr + '</span>' +
-      '<button class="say" data-say="' + tip.gr.replace(/"/g, '&quot;') + '" aria-label="Hear the Greek">🔊</button></p>' +
+      '<p class="teacher-gr"><span class="gr">' + tip.gr + '</span></p>' +
       '<p class="teacher-hint">Tap her face for another tip →</p>' +
       '</div></div>';
   };
@@ -133,7 +132,7 @@
     return '<div class="teacher-pair">' +
       '<div class="card teacher-intro">' +
       '<h3 style="margin-top:0">Meet your teachers</h3>' +
-      '<p class="small">Two familiar faces from class. Tap either one: she will give you a tip for the day and say the Greek out loud.</p>' +
+      '<p class="small">Two familiar faces from class. Tap either one: she will give you a tip for the day, in English and in Greek.</p>' +
       '<div class="pair-row">' +
       '<div class="pair-item" data-teacher="martha">' +
       '<button class="teacher-face" data-teacher-face="martha" aria-label="Ask Ms Martha for a tip">' + T.martha.face + '<span class="teacher-pulse" aria-hidden="true"></span></button>' +
@@ -144,7 +143,7 @@
       '</div>' +
       '<div class="pair-bubble" data-pair-bubble><span class="who"></span><span class="what"></span>' +
       '<span class="gr" data-pair-gr></span>' +
-      '<button class="say" data-say="" aria-label="Hear the Greek">🔊</button></div>' +
+      '</div>' +
       '<p class="tiny muted" style="margin:8px 0 0">' + T.martha.tips.length + ' tips from each teacher — tap again for the next.</p>' +
       '</div></div>';
   };
@@ -161,7 +160,6 @@
       '<div class="teacher-face static">' + who.face + '</div>' +
       '<div class="teacher-body"><p class="teacher-name"><b>' + who.name + '</b> <span>· ' + who.role + '</span></p>' +
       '<p class="teacher-tip">' + en + '</p>' +
-      '<p class="teacher-gr"><span class="gr">' + gr + '</span>' +
-      '<button class="say" data-say="' + gr + '" aria-label="Hear the Greek">🔊</button></p></div></div>';
+      '<p class="teacher-gr"><span class="gr">' + gr + '</span></p></div></div>';
   };
 })();

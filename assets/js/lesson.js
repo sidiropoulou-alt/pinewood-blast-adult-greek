@@ -12,22 +12,22 @@
   }
 
   function phraseCards(items) {
-    var esc = UI.esc, sayBtn = UI.sayBtn;
+    var esc = UI.esc;
     return '<div style="display:grid;gap:10px">' + items.map(function (it) {
       var g = it[0], e = it[1], u = it[2];
-      return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(g) + '</span>' + sayBtn(g, 'small') + '</div>' +
+      return '<div class="phrase-card"><div class="g"><span class="gr">' + esc(g) + '</span>' + '</div>' +
         '<div class="e">' + esc(e) + '</div>' + (u ? '<div class="u">' + esc(u) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
   }
 
   function letterCards(rows) {
-    var esc = UI.esc, sayBtn = UI.sayBtn;
+    var esc = UI.esc;
     return '<div class="alpha-grid">' + rows.map(function (r) {
       var name = r[1].split(' (')[0];
-      return '<div class="alpha-card"><div class="big">' + esc(r[0]) + sayBtn(name) + '</div>' +
+      return '<div class="alpha-card"><div class="big">' + esc(r[0]) + '</div>' +
         '<div class="name">' + esc(r[1]) + '</div>' +
         '<div class="ipa">' + esc(r[2]) + '</div>' +
-        '<div class="hint" style="margin-top:6px">' + esc(r[3]) + sayBtn(r[3].split(' · ')[0], 'small') + '</div></div>';
+        '<div class="hint" style="margin-top:6px">' + esc(r[3]) + '</div></div>';
     }).join('') + '</div>';
   }
 
@@ -81,7 +81,7 @@
 
     return '<span class="kicker">Day ' + d.day + ' · Week ' + d.week + ' · ' + UI.esc(d.minutes || '15 min') + '</span>' +
       '<h1>' + (window.GREEK.icon ? window.GREEK.icon(window.GREEK.dayIcon(d.day), 'h1icon') : '') + d.title + '</h1>' +
-      '<p class="lead"><span class="gr">' + UI.esc(d.gr) + '</span> ' + UI.sayBtn(d.gr, 'small') + '</p>' +
+      '<p class="lead"><span class="gr">' + UI.esc(d.gr) + '</span> ' + '</p>' +
       '<div class="card"><div class="spread"><h3 style="margin:0">Today you will…</h3>' +
       (d.level ? '<span class="pill blue">' + esc(d.level) + '</span>' : '') + '</div>' +
       '<ul class="small" style="padding-left:1.15em;margin:10px 0 0">' + goals + '</ul></div>' +
