@@ -176,6 +176,7 @@ hr{border:0;border-top:1px solid var(--line);margin:26px 0}
 .hero h1{margin-bottom:.3em;max-width:20ch}
 .hero p{max-width:56ch}
 .hero-inner{position:relative;z-index:1}
+.cover-logo{position:absolute;top:-6px;right:-6px;width:clamp(64px,9vw,104px);height:auto;opacity:.92;pointer-events:none}
 .hero-stats{display:flex;gap:26px;flex-wrap:wrap;margin:22px 0 6px}
 .hero-stats div{display:flex;flex-direction:column}
 .hero-stats b{font-family:var(--serif);font-size:1.6rem;color:var(--blue-deep);line-height:1}
@@ -418,6 +419,7 @@ td.note{color:var(--muted);font-size:.86rem}
 @media (max-width:520px){
   body{font-size:16px}
   .hero{padding:22px 18px;border-radius:18px}
+  .cover-logo{position:static;display:block;width:44px;margin:0 0 6px auto}
   .hero-stats{gap:18px}
   .grid.days{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
   .lesson-head{border-radius:18px}

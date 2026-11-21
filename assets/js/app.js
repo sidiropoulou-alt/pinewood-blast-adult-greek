@@ -456,6 +456,12 @@
 
     return '<section class="hero">' +
       '<div class="hero-inner">' +
+      '<svg class="cover-logo" viewBox="0 0 128 96" role="img" aria-label="BLAST">' +
+      '<g fill="none" stroke-width="13">' +
+      '<path d="M34 14 10 74M34 14l24 60" stroke="#8cc462"/>' +
+      '<path d="M68 26 46 80M68 26l22 54" stroke="#c6ea8a"/>' +
+      '<path d="M100 38 80 86M100 38l20 48" stroke="#a3cf7a"/>' +
+      '</g></svg>' +
       '<span class="kicker">Pinewood BLAST · Adult Greek · A1</span>' +
       '<h1>Learn Greek, one small day at a time</h1>' +
       '<p class="lead">A 30-day practice companion for our class using <i>Greek for you A1</i>. ' +
