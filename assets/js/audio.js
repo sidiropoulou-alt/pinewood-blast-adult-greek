@@ -1,10 +1,26 @@
-/* Greek speech using the device's own speech-synthesis voices.
-   No files, no network: works offline once the page is loaded.          */
+/* Greek audio.
+   Every letter, every core word and most course phrases ship as a small MP3
+   recorded with a Greek voice, so the pronunciation is Greek on any device.
+   Anything without a bundled clip falls back to the device's own Greek voice. */
 window.Speech = (function () {
   var synth = window.speechSynthesis || null;
   var voice = null;
   var enabled = true;
   var warned = false;
+  var player = null;
+  var seqToken = 0;
+
+  function norm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^α-ωa-z0-9 ]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function files() { return (window.GREEK && window.GREEK.audioFiles) || {}; }
+  function letterFiles() { return (window.GREEK && window.GREEK.letterAudio) || {}; }
 
   function pickVoice() {
     if (!synth) return null;
@@ -35,15 +51,27 @@ window.Speech = (function () {
     return String(text).replace(/\s+/g, ' ').trim();
   }
 
-  function speak(text, opts) {
-    opts = opts || {};
-    if (!synth) { toast('This browser cannot play speech.'); return null; }
-    if (!enabled && !opts.force) return null;
-    text = parse(text);
-    if (!text) return null;
-    voice = voice || pickVoice();
-    try { synth.cancel(); } catch (e) {}
+  function halt() {
+    if (player) {
+      try { player.pause(); player.currentTime = 0; } catch (e) {}
+      player = null;
+    }
+    if (synth) { try { synth.cancel(); } catch (e) {} }
+  }
 
+  function stop() {
+    seqToken++;
+    halt();
+  }
+
+  function speakTTS(text, opts) {
+    opts = opts || {};
+    if (!synth) {
+      if (!opts.silent) toast('This browser cannot play speech.');
+      opts.onend && opts.onend();
+      return null;
+    }
+    voice = voice || pickVoice();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = 'el-GR';
     if (voice) u.voice = voice;
@@ -51,18 +79,78 @@ window.Speech = (function () {
     u.pitch = opts.pitch || 1;
     u.volume = 1;
     if (opts.onstart) u.onstart = opts.onstart;
-    if (opts.onend) u.onend = function () { opts.onend(); };
-    if (opts.onerror) u.onerror = function () { opts.onend && opts.onend(); };
+    u.onend = function () { opts.onend && opts.onend(); };
+    u.onerror = function () { opts.onend && opts.onend(); };
 
     if (!voice && !warned) {
       warned = true;
-      toast('No Greek voice found on this device. Audio may sound English — see the note on the home page.');
+      toast('This device has no Greek voice. Letters and core words still play in Greek; longer texts may sound English.');
     }
     synth.speak(u);
     return u;
   }
 
-  function stop() { if (synth) { try { synth.cancel(); } catch (e) {} } }
+  /* Play one bundled clip. */
+  function playClip(src, opts) {
+    opts = opts || {};
+    halt();
+    var a = new Audio(src);
+    a.preload = 'auto';
+    player = a;
+    a.onended = function () { if (player === a) player = null; opts.onend && opts.onend(); };
+    a.onerror = function () {
+      if (player === a) player = null;
+      if (!opts.noFallback) speakTTS(opts.text || '', opts);
+    };
+    var p = a.play();
+    if (p && p.catch) {
+      p.catch(function () {
+        if (player === a) player = null;
+        if (!opts.noFallback) speakTTS(opts.text || '', opts);
+      });
+    }
+    return a;
+  }
+
+  function speak(text, opts) {
+    opts = opts || {};
+    if (!enabled && !opts.force) return null;
+    text = parse(text);
+    if (!text) { opts.onend && opts.onend(); return null; }
+    var clip = files()[norm(text)];
+    if (clip) return playClip(clip, { text: text, onend: opts.onend, noFallback: opts.noFallback });
+    if (synth) { try { synth.cancel(); } catch (e) {} }
+    return speakTTS(text, opts);
+  }
+
+  /* A single Greek letter, by its glyph: α, β, γ … */
+  function speakLetter(ch, opts) {
+    var key = String(ch || '').trim().toLowerCase();
+    var clip = letterFiles()[key];
+    if (clip) return playClip(clip, opts || {});
+    return speak(key, opts);
+  }
+
+  /* Play a list in order, one item after another. */
+  function sequence(items, opts) {
+    opts = opts || {};
+    var list = (items || []).slice();
+    var gap = opts.gap == null ? 260 : opts.gap;
+    var i = 0;
+    var myToken = seqToken;
+    function step() {
+      if (myToken !== seqToken) return;
+      if (i >= list.length) { opts.onend && opts.onend(); return; }
+      var item = list[i++];
+      setTimeout(function () {
+        if (myToken !== seqToken) return;
+        speak(item, { onend: step, force: true });
+      }, i === 1 ? 0 : gap);
+    }
+    step();
+  }
+
+  function hasClip(text) { return !!files()[norm(text)]; }
 
   function hasGreekVoice() {
     voice = voice || pickVoice();
@@ -75,14 +163,19 @@ window.Speech = (function () {
   }
 
   function preferences() {
-    return { enabled: enabled, hasVoice: hasGreekVoice(), supported: !!synth };
+    return {
+      enabled: enabled,
+      hasVoice: hasGreekVoice(),
+      supported: !!(synth || Object.keys(files()).length),
+      clips: Object.keys(files()).length
+    };
   }
 
   return {
-    speak: speak, stop: stop, setEnabled: setEnabled,
+    speak: speak, speakLetter: speakLetter, sequence: sequence, stop: stop,
+    setEnabled: setEnabled, hasGreekVoice: hasGreekVoice, hasClip: hasClip,
     isEnabled: function () { return enabled; },
-    hasGreekVoice: hasGreekVoice,
-    preferences: preferences
+    preferences: preferences, normalize: norm
   };
 })();
 
@@ -93,5 +186,5 @@ function toast(msg, ms) {
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toast._t);
-  toast._t = setTimeout(function () { el.classList.remove('show'); }, ms || 3200);
+  toast._t = setTimeout(function () { el.classList.remove('show'); }, ms || 3600);
 }

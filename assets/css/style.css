@@ -175,18 +175,25 @@ hr{border:0;border-top:1px solid var(--line);margin:26px 0}
 }
 .hero h1{margin-bottom:.3em;max-width:20ch}
 .hero p{max-width:56ch}
-.hero-art{position:absolute;right:-30px;bottom:-16px;width:min(46%,380px);opacity:.95;pointer-events:none}
 .hero-inner{position:relative;z-index:1}
 .hero-stats{display:flex;gap:26px;flex-wrap:wrap;margin:22px 0 6px}
 .hero-stats div{display:flex;flex-direction:column}
 .hero-stats b{font-family:var(--serif);font-size:1.6rem;color:var(--blue-deep);line-height:1}
 .hero-stats span{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
 
-/* home scenes */
-.scene-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin:0 0 26px}
-.scene{margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff}
-.scene svg{display:block;width:100%;height:auto}
-.scene figcaption{padding:10px 14px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line)}
+/* small icons */
+.icon{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em;color:var(--pine,#2f5d43)}
+.hero-icons{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.hchip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:.82rem;color:var(--ink)}
+.hchip .icon{width:17px;height:17px}
+.icon-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin:0 0 26px}
+.iitem{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.iitem>svg{width:22px;height:22px;margin-top:2px}
+.iitem b{display:block;font-size:.88rem;line-height:1.25}
+.iitem span{display:block;font-size:.8rem;color:var(--muted);margin-top:2px}
+.dicon{width:15px;height:15px;margin-right:2px}
+.h1icon{width:30px;height:30px;vertical-align:-.12em;margin-right:.15em}
+.h2icon{width:22px;height:22px;margin-right:.15em}
 
 /* grids */
 .grid{display:grid;gap:16px}
@@ -396,7 +403,6 @@ td.note{color:var(--muted);font-size:.86rem}
 
 /* ---------- responsive ---------- */
 @media (max-width:960px){
-  .hero-art{width:44%;opacity:.5}
   .content{padding-top:22px}
 }
 @media (max-width:860px){
@@ -412,7 +418,6 @@ td.note{color:var(--muted);font-size:.86rem}
 @media (max-width:520px){
   body{font-size:16px}
   .hero{padding:22px 18px;border-radius:18px}
-  .hero-art{display:none}
   .hero-stats{gap:18px}
   .grid.days{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
   .lesson-head{border-radius:18px}

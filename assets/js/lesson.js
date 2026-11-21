@@ -23,10 +23,11 @@
   function letterCards(rows) {
     var esc = UI.esc, sayBtn = UI.sayBtn;
     return '<div class="alpha-grid">' + rows.map(function (r) {
-      return '<div class="alpha-card"><div class="big">' + esc(r[0]) + sayBtn(r[3].split(' · ')[0]) + '</div>' +
+      var name = r[1].split(' (')[0];
+      return '<div class="alpha-card"><div class="big">' + esc(r[0]) + sayBtn(name) + '</div>' +
         '<div class="name">' + esc(r[1]) + '</div>' +
         '<div class="ipa">' + esc(r[2]) + '</div>' +
-        '<div class="hint" style="margin-top:6px">' + esc(r[3]) + '</div></div>';
+        '<div class="hint" style="margin-top:6px">' + esc(r[3]) + sayBtn(r[3].split(' · ')[0], 'small') + '</div></div>';
     }).join('') + '</div>';
   }
 
@@ -58,7 +59,6 @@
     else if (t === 'tip' || t === 'warn' || t === 'note' || t === 'ok') {
       return '<div class="' + (t === 'note' ? 'note-box' : t) + '" style="margin:0 0 18px">' + (s.title ? '<p><b>' + s.title + '</b> ' + s.html + '</p>' : s.html) + '</div>';
     }
-    else if (t === 'art') return '<div class="section">' + (window.GREEK.art[s.name] || '') + '</div>';
 
     return '<div class="section">' +
       (s.title ? '<div class="sec-head"><span class="sec-num">' + (i + 1) + '</span><h2>' + s.title + '</h2></div>' : '') +
@@ -80,7 +80,7 @@
     var homework = (d.homework || []).map(function (g) { return '<li>' + g + '</li>'; }).join('');
 
     return '<span class="kicker">Day ' + d.day + ' · Week ' + d.week + ' · ' + UI.esc(d.minutes || '15 min') + '</span>' +
-      '<h1>' + d.title + '</h1>' +
+      '<h1>' + (window.GREEK.icon ? window.GREEK.icon(window.GREEK.dayIcon(d.day), 'h1icon') : '') + d.title + '</h1>' +
       '<p class="lead"><span class="gr">' + UI.esc(d.gr) + '</span> ' + UI.sayBtn(d.gr, 'small') + '</p>' +
       '<div class="card"><div class="spread"><h3 style="margin:0">Today you will…</h3>' +
       (d.level ? '<span class="pill blue">' + esc(d.level) + '</span>' : '') + '</div>' +

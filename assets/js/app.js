@@ -118,7 +118,27 @@
       e.preventDefault();
       Speech.speak(btn.getAttribute('data-say'));
       btn.classList.add('playing');
-      setTimeout(function () { btn.classList.remove('playing'); }, 1200);
+      setTimeout(function () { btn.classList.remove('playing'); }, 1600);
+      return;
+    }
+    var alpha = e.target.closest('[data-play-alphabet]');
+    if (alpha) {
+      e.preventDefault();
+      if (alpha._playing) {
+        alpha._playing = false;
+        Speech.stop();
+        alpha.textContent = '▶ Hear all 24 letters';
+        return;
+      }
+      alpha._playing = true;
+      alpha.textContent = '■ Stop';
+      Speech.sequence(window.GREEK.letters.map(function (l) { return l.name; }), {
+        gap: 300,
+        onend: function () {
+          alpha._playing = false;
+          alpha.textContent = '▶ Hear all 24 letters';
+        }
+      });
       return;
     }
     var play = e.target.closest('[data-play-dialogue]');
@@ -411,7 +431,8 @@
   }
   window.vocabTable = vocabTable;
 
-  function art(name) { return '<div class="art">' + (window.GREEK.art[name] || '') + '</div>'; }
+  function ic(name, cls) { return window.GREEK.icon ? window.GREEK.icon(name, cls) : ''; }
+  function dayIc(day) { return window.GREEK.dayIcon ? window.GREEK.dayIcon(day) : 'book'; }
 
   /* ---------------- HOME ---------------- */
   function pageHome() {
@@ -428,7 +449,7 @@
       var done = !!state.done[d.day];
       return '<a class="day-card' + (done ? ' done' : '') + '" href="#/day/' + d.day + '">' +
         (done ? '<span class="tick">✓</span>' : '') +
-        '<span class="dnum">Day ' + d.day + '</span>' +
+        '<span class="dnum">' + ic(dayIc(d.day), 'dicon') + ' Day ' + d.day + '</span>' +
         '<span class="dtitle">' + esc(d.title) + '</span>' +
         '<span class="dgr">' + esc(d.gr) + '</span></a>';
     }).join('');
@@ -449,8 +470,13 @@
       '<div class="row" style="margin-top:22px">' +
       '<a class="btn" href="#/day/' + (firstUnfinished()) + '">' + (doneCount() ? 'Continue' : 'Start Day 1') + ' →</a>' +
       '<a class="btn ghost" href="#/alphabet">Alphabet first</a>' +
-      '</div></div>' +
-      '<div class="hero-art" aria-hidden="true">' + art('island') + '</div>' +
+      '</div>' +
+      '<div class="hero-icons">' +
+      [['wave', 'γεια σας'], ['cup', 'έναν καφέ'], ['bus', 'το λεωφορείο'], ['house', 'το σπίτι']].map(function (x) {
+        return '<span class="hchip">' + ic(x[0]) + ' <span class="gr">' + x[1] + '</span></span>';
+      }).join('') +
+      '</div>' +
+      '</div>' +
       '</section>' +
 
       '<div class="grid two" style="margin-bottom:26px">' +
@@ -482,9 +508,15 @@
 
       (window.teacherPair ? window.teacherPair() : '') +
 
-      '<div class="scene-grid">' +
-      '<figure class="scene">' + (window.GREEK.art.cafe || '') + '<figcaption>Στο καφενείο · At the café — the scene of Day 14</figcaption></figure>' +
-      '<figure class="scene">' + (window.GREEK.art.map || '') + '<figcaption>Η Αίγινα στον χάρτη · Aegina on the map — where the course begins</figcaption></figure>' +
+      '<div class="icon-grid">' +
+      [['alphabet', 'Days 1–4 · Alphabet', 'Read Greek aloud from day one'],
+       ['wave', 'Days 5–9 · Greetings', 'Meet, introduce, count, describe'],
+       ['bolt', 'Days 10–12 · Present tense', 'The -ω and -άω verb groups'],
+       ['cup', 'Days 13–17 · Everyday life', 'Café, home, shops, transport'],
+       ['briefcase', 'Days 18–21 · People & work', 'Jobs, family, health, weather'],
+       ['temple', 'Days 22–30 · Fluency', 'Past, future, opinions, culture']].map(function (x) {
+        return '<div class="iitem">' + ic(x[0]) + '<div><b>' + x[1] + '</b><span>' + x[2] + '</span></div></div>';
+      }).join('') +
       '</div>' +
 
       '<div class="spread" style="margin-bottom:12px"><h2 style="margin:0">The 30-day course</h2>' +
@@ -530,11 +562,12 @@
   function pageAlphabet() {
     var letters = window.GREEK.letters.map(function (L) {
       return '<div class="alpha-card">' +
-        '<div class="big">' + L.u + ' ' + L.l + sayBtn(L.l.split(' ')[0] + ', ' + L.name) + '</div>' +
+        '<div class="big">' + L.u + ' ' + L.l + sayBtn(L.name) + '</div>' +
         '<div class="name">' + esc(L.name) + '</div>' +
         '<div class="ipa">' + esc(L.ipa) + '</div>' +
         '<div class="hint">' + L.hint + '</div>' +
-        '<div class="hint" style="margin-top:6px"><span class="gr">' + esc(L.ex) + '</span> · ' + esc(L.exEn) + '</div>' +
+        '<div class="hint" style="margin-top:6px"><span class="gr">' + esc(L.ex) + '</span> · ' + esc(L.exEn) +
+        sayBtn(L.ex, 'small') + '</div>' +
         '</div>';
     }).join('');
 
@@ -552,8 +585,11 @@
       '<h1>The Greek alphabet &amp; sounds</h1>' +
       '<p class="lead">Twenty-four letters, twenty-four sounds — but only five vowel sounds. Learn the sounds first and Greek spelling ' +
       'stops being mysterious.</p>' +
-      '<div class="row" style="margin:18px 0 26px"><a class="btn" href="#/day/1">Practise this in Day 1 →</a>' +
-      '<span class="audio-legend">' + sayBtn('α β γ δ', 'small') + ' tap to hear a letter</span></div>' +
+      '<div class="row" style="margin:18px 0 10px"><a class="btn" href="#/day/1">Practise this in Day 1 →</a>' +
+      '<button class="btn ghost" type="button" data-play-alphabet>▶ Hear all 24 letters</button>' +
+      '<span class="audio-legend">' + sayBtn('α', 'small') + ' tap a letter to hear its Greek name</span></div>' +
+      '<p class="small muted" style="margin:0 0 26px">Every letter and example below is a real Greek recording, ' +
+      'so it sounds Greek even if your computer has no Greek voice installed.</p>' +
       '<h2>Τα γράμματα · The letters</h2>' +
       '<div class="alpha-grid">' + letters + '</div>' +
       '<h2 style="margin-top:38px">Two letters, one sound</h2>' +
@@ -789,11 +825,11 @@
     var groups = REF.vocab || [];
     var tabs = groups.map(function (g, i) {
       return '<button role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-tab="' + g.id + '">' +
-        (g.icon ? g.icon + ' ' : '') + esc(g.title) + '</button>';
+        ic(window.GREEK.groupIcon ? window.GREEK.groupIcon(g.title) : 'book') + ' ' + esc(g.title) + '</button>';
     }).join('');
     var panels = groups.map(function (g, i) {
       return '<div data-panel="' + g.id + '"' + (i === 0 ? '' : ' style="display:none"') + '>' +
-        '<div class="card"><div class="spread"><div><h2 style="margin:0">' + esc(g.title) + '</h2>' +
+        '<div class="card"><div class="spread"><div><h2 style="margin:0">' + ic(window.GREEK.groupIcon ? window.GREEK.groupIcon(g.title) : 'book', 'h2icon') + ' ' + esc(g.title) + '</h2>' +
         '<p class="small muted" style="margin:2px 0 0"><span class="gr">' + esc(g.gr || '') + '</span></p></div>' +
         '<span class="pill">' + g.rows.length + ' words</span></div>' +
         (g.intro ? '<p class="small" style="margin-top:14px">' + md(g.intro) + '</p>' : '') +

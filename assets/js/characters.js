@@ -4,29 +4,34 @@
   var T = (window.TEACHERS = window.TEACHERS || {});
 
   function face(o) {
+    var skin = o.skin || '#f2c6a3';
     return '<svg viewBox="0 0 120 120" role="img" aria-label="' + o.label + '">' +
       '<defs><linearGradient id="bg' + o.id + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + o.bg1 + '"/><stop offset="1" stop-color="' + o.bg2 + '"/></linearGradient></defs>' +
       '<circle cx="60" cy="60" r="58" fill="url(#bg' + o.id + ')" stroke="#e1d8c2" stroke-width="2"/>' +
-      /* shoulders */
+      /* shoulders + neck */
       '<path d="M18 112c4-17 20-26 42-26s38 9 42 26z" fill="' + o.top + '"/>' +
-      '<path d="M52 86h16v10a8 8 0 01-16 0z" fill="#e8b48f"/>' +
-      /* neck + head */
-      '<ellipse cx="60" cy="58" rx="27" ry="30" fill="#f2c6a3"/>' +
-      /* hair */
+      '<path d="M52 85h16v11a8 8 0 0 1-16 0z" fill="' + skin + '"/>' +
+      /* hair behind the head */
+      (o.hairBack || '') +
+      /* head */
+      '<ellipse cx="60" cy="58" rx="26" ry="30" fill="' + skin + '"/>' +
+      /* hair in front */
       o.hair +
-      /* eyes */
-      '<ellipse cx="50" cy="57" rx="3.4" ry="4" fill="#3b2a1e"/>' +
-      '<ellipse cx="70" cy="57" rx="3.4" ry="4" fill="#3b2a1e"/>' +
-      '<circle cx="51.2" cy="55.6" r="1.1" fill="#fff"/><circle cx="71.2" cy="55.6" r="1.1" fill="#fff"/>' +
       /* brows */
-      '<path d="M44 49c4-3 8-3 11-1M65 48c3-2 7-2 11 1" stroke="#5a4433" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-      /* nose + smile */
-      '<path d="M60 60v7c0 2-2 3-4 3" stroke="#d99f79" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-      '<path d="M50 74c3 4 7 6 10 6s7-2 10-6" stroke="#a5503f" stroke-width="2.6" fill="none" stroke-linecap="round"/>' +
+      '<path d="M43 51c3-3 8-3 11 0M63 51c3-3 8-3 11 0" stroke="' + o.brow + '" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+      /* eyes */
+      '<ellipse cx="50" cy="59" rx="3.7" ry="4.3" fill="#4b3826"/>' +
+      '<ellipse cx="70" cy="59" rx="3.7" ry="4.3" fill="#4b3826"/>' +
+      '<circle cx="51.2" cy="57.5" r="1.15" fill="#fff"/><circle cx="71.2" cy="57.5" r="1.15" fill="#fff"/>' +
+      '<path d="M45.4 54.6c1.8-2.2 4.6-2.2 6.4 0M64.2 54.6c1.8-2.2 4.6-2.2 6.4 0" stroke="#3a2a1c" stroke-width="1.3" fill="none" stroke-linecap="round"/>' +
+      /* nose */
+      '<path d="M60 61v6c0 2-1.6 3-3.4 3" stroke="#d99f79" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
+      /* lips */
+      '<path d="M51 77c2.4-2 4.6-1 5.6.2 1-1.2 3.2-2.2 5.6-.2 1 2.4.4 4.2-2.4 4.8h-6.4c-2.8-.6-3.4-2.4-2.4-4.8z" fill="' + o.lip + '"/>' +
       /* cheeks */
-      '<ellipse cx="43" cy="68" rx="5" ry="3" fill="#eda98f" opacity=".55"/>' +
-      '<ellipse cx="77" cy="68" rx="5" ry="3" fill="#eda98f" opacity=".55"/>' +
+      '<ellipse cx="43" cy="69" rx="5" ry="3" fill="' + o.blush + '" opacity=".5"/>' +
+      '<ellipse cx="77" cy="69" rx="5" ry="3" fill="' + o.blush + '" opacity=".5"/>' +
       o.extra +
       '</svg>';
   }
@@ -53,10 +58,13 @@
     ],
     face: face({
       id: 'm', label: 'Ms Martha', bg1: '#e8f0e3', bg2: '#cfdfc6', top: '#2f5d43',
-      hair: '<path d="M32 45c0-17 12-27 28-27s28 10 28 27c0 8-3 13-4 16-2-11-5-17-8-19-6 4-16 6-26 3-6-2-9-4-10-1-3 4-4 10-4 17-2-4-4-8-4-16z" fill="#5c4632"/>' +
-        '<path d="M31 44c-4 12-3 22 0 28 2-10 3-19 2-28zM89 44c4 12 3 22 0 28-2-10-3-19-2-28z" fill="#5c4632"/>',
-      extra: '<g stroke="#3f3427" stroke-width="2" fill="none"><circle cx="50" cy="57" r="8"/><circle cx="70" cy="57" r="8"/><path d="M58 57h4"/></g>' +
-        '<circle cx="70" cy="84" r="2.4" fill="#c9a227"/>'
+      skin: '#f6d0ac', brow: '#b08b52', lip: '#c9737a', blush: '#ef9f8d',
+      hairBack: '<path d="M30 58c-4 12-4 24 0 33 3-9 4-18 3-27zM90 58c4 12 4 24 0 33-3-9-4-18-3-27z" fill="#e7ca8a"/>',
+      hair: '<path d="M33 53c0-19 12-31 27-31s27 12 27 31c0 8-2 15-4 19-2-10-4-16-6-20-5 5-11 7-17 7s-12-2-17-7c-2 4-4 10-6 20-2-4-4-11-4-19z" fill="#f2dca8"/>' +
+        '<path d="M60 22c-9 0-16 5-20 13 5-6 12-9 20-9s15 3 20 9c-4-8-11-13-20-13z" fill="#f7e7bf"/>',
+      extra: '<g stroke="#b08b52" stroke-width="1.8" fill="none" opacity=".9"><circle cx="50" cy="59" r="9"/><circle cx="70" cy="59" r="9"/><path d="M59 59h2"/><path d="M41 57l-4-2M79 57l4-2"/></g>' +
+        '<g fill="#d9a77e"><circle cx="45" cy="70" r=".9"/><circle cx="48" cy="73" r=".9"/><circle cx="42" cy="73" r=".9"/><circle cx="75" cy="70" r=".9"/><circle cx="72" cy="73" r=".9"/><circle cx="78" cy="73" r=".9"/></g>' +
+        '<circle cx="87" cy="72" r="2.2" fill="#c9a227"/>'
     })
   };
 
@@ -82,10 +90,14 @@
     ],
     face: face({
       id: 'f', label: 'Ms Filiana', bg1: '#f7e9da', bg2: '#e8cdb3', top: '#a3642f',
-      hair: '<path d="M30 52c0-20 13-32 30-32s30 12 30 32c0 6-1 10-2 13-3-13-8-20-14-23-8 5-20 6-29 2-5 3-8 9-10 21-2-4-5-8-5-13z" fill="#3d2a1f"/>' +
-        '<path d="M30 52c-6 14-6 30 2 40 1-16 3-28 4-40zM90 52c6 14 6 30-2 40-1-16-3-28-4-40z" fill="#3d2a1f"/>',
-      extra: '<circle cx="34" cy="72" r="3.2" fill="#c9a227"/><circle cx="86" cy="72" r="3.2" fill="#c9a227"/>' +
-        '<path d="M55 44c3-2 7-2 10 0" stroke="#3d2a1f" stroke-width="1.6" fill="none"/>'
+      skin: '#f7d1b0', brow: '#c9a25e', lip: '#b8555f', blush: '#ee9f86',
+      hairBack: '<path d="M26 55c-5 13-6 27-2 40 2 7 5 12 9 16-2-9-2-18-1-26 2-10 1-20-1-30zM94 55c5 13 6 27 2 40-2 7-5 12-9 16 2-9 2-18 1-26-2-10-1-20 1-30z" fill="#dcb25f"/>',
+      hair: '<path d="M60 20c-20 0-31 13-31 33 0 8 1 15 2 21-3 11-5 19-4 26 4-6 8-9 12-9-1 7 0 12 2 16 3-6 6-10 10-12-1-9-2-17-2-25 4 4 8 6 12 6s8-2 12-6c0 8-1 16-2 25 4 2 7 6 10 12 2-4 3-9 2-16 4 0 8 3 12 9 1-7-1-15-4-26 1-6 2-13 2-21 0-20-11-33-31-33z" fill="#e8c476"/>' +
+        '<path d="M40 33c4-8 11-13 20-13 10 0 17 5 21 14-6-6-13-9-21-9s-15 3-20 8z" fill="#f4dda6"/>' +
+        '<path d="M34 52c1-8 4-14 8-19 1 9-1 17-4 24-2 0-3-2-4-5z" fill="#f4dda6"/>',
+      extra: '<circle cx="33" cy="74" r="3.2" fill="#c9a227"/><circle cx="87" cy="74" r="3.2" fill="#c9a227"/>' +
+        '<path d="M44 44c3-3 7-4 10-4M66 40c3 0 7 1 10 4" stroke="#d8ae5e" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M30 96c8-4 18-5 30-5" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/>'
     })
   };
 
