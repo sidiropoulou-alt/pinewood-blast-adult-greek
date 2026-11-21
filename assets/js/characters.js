@@ -7,17 +7,18 @@
     var skin = o.skin || '#f2c6a3';
     return '<svg viewBox="0 0 120 120" role="img" aria-label="' + o.label + '">' +
       '<defs><linearGradient id="bg' + o.id + '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="' + o.bg1 + '"/><stop offset="1" stop-color="' + o.bg2 + '"/></linearGradient></defs>' +
+      '<stop offset="0" stop-color="' + o.bg1 + '"/><stop offset="1" stop-color="' + o.bg2 + '"/></linearGradient>' +
+      '<clipPath id="clip' + o.id + '"><circle cx="60" cy="58" r="56"/></clipPath></defs>' +
       '<circle cx="60" cy="60" r="58" fill="url(#bg' + o.id + ')" stroke="#e1d8c2" stroke-width="2"/>' +
       /* shoulders + neck */
       '<path d="M18 112c4-17 20-26 42-26s38 9 42 26z" fill="' + o.top + '"/>' +
       '<path d="M52 85h16v11a8 8 0 0 1-16 0z" fill="' + skin + '"/>' +
       /* hair behind the head */
-      (o.hairBack || '') +
+      '<g clip-path="url(#clip' + o.id + ')">' + (o.hairBack || '') + '</g>' +
       /* head */
       '<ellipse cx="60" cy="58" rx="26" ry="30" fill="' + skin + '"/>' +
       /* hair in front */
-      o.hair +
+      '<g clip-path="url(#clip' + o.id + ')">' + o.hair + '</g>' +
       /* brows */
       '<path d="M43 51c3-3 8-3 11 0M63 51c3-3 8-3 11 0" stroke="' + o.brow + '" stroke-width="2" fill="none" stroke-linecap="round"/>' +
       /* eyes */
@@ -59,10 +60,11 @@
     face: face({
       id: 'm', label: 'Ms Martha', bg1: '#e8f0e3', bg2: '#cfdfc6', top: '#2f5d43',
       skin: '#f6d0ac', brow: '#b08b52', lip: '#c9737a', blush: '#ef9f8d',
-      hairBack: '<path d="M26 55c-5 13-6 27-2 40 2 7 5 12 9 16-2-9-2-18-1-26 2-10 1-20-1-30zM94 55c5 13 6 27 2 40-2 7-5 12-9 16 2-9 2-18 1-26-2-10-1-20 1-30z" fill="#dcb25f"/>',
-      hair: '<path d="M60 20c-20 0-31 13-31 33 0 8 1 15 2 21-3 11-5 19-4 26 4-6 8-9 12-9-1 7 0 12 2 16 3-6 6-10 10-12-1-9-2-17-2-25 4 4 8 6 12 6s8-2 12-6c0 8-1 16-2 25 4 2 7 6 10 12 2-4 3-9 2-16 4 0 8 3 12 9 1-7-1-15-4-26 1-6 2-13 2-21 0-20-11-33-31-33z" fill="#e8c476"/>' +
-        '<path d="M40 33c4-8 11-13 20-13 10 0 17 5 21 14-6-6-13-9-21-9s-15 3-20 8z" fill="#f4dda6"/>' +
-        '<path d="M34 52c1-8 4-14 8-19 1 9-1 17-4 24-2 0-3-2-4-5z" fill="#f4dda6"/>',
+      hairBack: '<g transform="translate(60 50) scale(1.24 1.12) translate(-60 -50)" fill="#e0b96f"><path d="M26 55c-5 13-6 27-2 40 2 7 5 12 9 16-2-9-2-18-1-26 2-10 1-20-1-30zM94 55c5 13 6 27 2 40-2 7-5 12-9 16 2-9 2-18 1-26-2-10-1-20 1-30z"/></g>',
+      hair: '<g transform="translate(60 0) scale(1.16 1) translate(-60 0)"><path d="M60 20c-20 0-31 13-31 33 0 8 1 15 2 21-3 11-5 19-4 26 4-6 8-9 12-9-1 7 0 12 2 16 3-6 6-10 10-12-1-9-2-17-2-25 4 4 8 6 12 6s8-2 12-6c0 8-1 16-2 25 4 2 7 6 10 12 2-4 3-9 2-16 4 0 8 3 12 9 1-7-1-15-4-26 1-6 2-13 2-21 0-20-11-33-31-33z" fill="#eccb83"/>' +
+        '<path d="M40 33c4-8 11-13 20-13 10 0 17 5 21 14-6-6-13-9-21-9s-15 3-20 8z" fill="#f6e0ab"/>' +
+        '<path d="M34 52c1-8 4-14 8-19 1 9-1 17-4 24-2 0-3-2-4-5z" fill="#f6e0ab"/>' +
+        '</g>',
       extra: '<g fill="#d9a77e"><circle cx="45" cy="70" r=".9"/><circle cx="48" cy="73" r=".9"/><circle cx="42" cy="73" r=".9"/><circle cx="75" cy="70" r=".9"/><circle cx="72" cy="73" r=".9"/><circle cx="78" cy="73" r=".9"/></g>' +
         '<circle cx="87" cy="72" r="2.2" fill="#c9a227"/>'
     })
@@ -91,10 +93,10 @@
     face: face({
       id: 'f', label: 'Ms Filiana', bg1: '#f7e9da', bg2: '#e8cdb3', top: '#a3642f',
       skin: '#f7d1b0', brow: '#c9a25e', lip: '#b8555f', blush: '#ee9f86',
-      hairBack: '<path d="M26 55c-5 13-6 27-2 40 2 7 5 12 9 16-2-9-2-18-1-26 2-10 1-20-1-30zM94 55c5 13 6 27 2 40-2 7-5 12-9 16 2-9 2-18 1-26-2-10-1-20 1-30z" fill="#dcb25f"/>',
-      hair: '<path d="M60 20c-20 0-31 13-31 33 0 8 1 15 2 21-3 11-5 19-4 26 4-6 8-9 12-9-1 7 0 12 2 16 3-6 6-10 10-12-1-9-2-17-2-25 4 4 8 6 12 6s8-2 12-6c0 8-1 16-2 25 4 2 7 6 10 12 2-4 3-9 2-16 4 0 8 3 12 9 1-7-1-15-4-26 1-6 2-13 2-21 0-20-11-33-31-33z" fill="#e8c476"/>' +
-        '<path d="M40 33c4-8 11-13 20-13 10 0 17 5 21 14-6-6-13-9-21-9s-15 3-20 8z" fill="#f4dda6"/>' +
-        '<path d="M34 52c1-8 4-14 8-19 1 9-1 17-4 24-2 0-3-2-4-5z" fill="#f4dda6"/>',
+      hairBack: '<path d="M26 55c-5 13-6 27-2 40 2 7 5 12 9 16-2-9-2-18-1-26 2-10 1-20-1-30zM94 55c5 13 6 27 2 40-2 7-5 12-9 16 2-9 2-18 1-26-2-10-1-20 1-30z" fill="#edd9ac"/>',
+      hair: '<path d="M60 20c-20 0-31 13-31 33 0 8 1 15 2 21-3 11-5 19-4 26 4-6 8-9 12-9-1 7 0 12 2 16 3-6 6-10 10-12-1-9-2-17-2-25 4 4 8 6 12 6s8-2 12-6c0 8-1 16-2 25 4 2 7 6 10 12 2-4 3-9 2-16 4 0 8 3 12 9 1-7-1-15-4-26 1-6 2-13 2-21 0-20-11-33-31-33z" fill="#f5e6bd"/>' +
+        '<path d="M40 33c4-8 11-13 20-13 10 0 17 5 21 14-6-6-13-9-21-9s-15 3-20 8z" fill="#fdf4dc"/>' +
+        '<path d="M34 52c1-8 4-14 8-19 1 9-1 17-4 24-2 0-3-2-4-5z" fill="#fdf4dc"/>',
       extra: '<circle cx="33" cy="74" r="3.2" fill="#c9a227"/><circle cx="87" cy="74" r="3.2" fill="#c9a227"/>' +
         '<path d="M44 44c3-3 7-4 10-4M66 40c3 0 7 1 10 4" stroke="#d8ae5e" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
         '<path d="M30 96c8-4 18-5 30-5" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/>'
@@ -134,12 +136,12 @@
       '<h3 style="margin-top:0">Meet your teachers</h3>' +
       '<p class="small">Two familiar faces from class. Tap either one: she will give you a tip for the day, in English and in Greek.</p>' +
       '<div class="pair-row">' +
-      '<div class="pair-item" data-teacher="martha">' +
-      '<button class="teacher-face" data-teacher-face="martha" aria-label="Ask Ms Martha for a tip">' + T.martha.face + '<span class="teacher-pulse" aria-hidden="true"></span></button>' +
-      '<p class="pair-name"><b>Ms Martha</b><small>Grammar &amp; pronunciation</small></p></div>' +
       '<div class="pair-item" data-teacher="filiana">' +
       '<button class="teacher-face" data-teacher-face="filiana" aria-label="Ask Ms Filiana for a tip">' + T.filiana.face + '<span class="teacher-pulse" aria-hidden="true"></span></button>' +
       '<p class="pair-name"><b>Ms Filiana</b><small>Conversation &amp; vocabulary</small></p></div>' +
+      '<div class="pair-item" data-teacher="martha">' +
+      '<button class="teacher-face" data-teacher-face="martha" aria-label="Ask Ms Martha for a tip">' + T.martha.face + '<span class="teacher-pulse" aria-hidden="true"></span></button>' +
+      '<p class="pair-name"><b>Ms Martha</b><small>Grammar &amp; pronunciation</small></p></div>' +
       '</div>' +
       '<div class="pair-bubble" data-pair-bubble><span class="who"></span><span class="what"></span>' +
       '<span class="gr" data-pair-gr></span>' +
