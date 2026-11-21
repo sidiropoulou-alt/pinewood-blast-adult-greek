@@ -243,6 +243,7 @@
     else if (r.name === 'dialogues') html = pageDialogues();
     else if (r.name === 'book') html = pageBook();
     else if (r.name === 'progress') html = pageProgress();
+    else if (r.name === 'voices') html = pageVoices();
     else html = pageHome();
 
     var main = $('#main');
@@ -615,6 +616,39 @@
     }).join('') + '</div>';
   }
   window.conjBlock = conjBlock;
+
+  /* Temporary: voice comparison page. Removed once a voice is chosen. */
+  function pageVoices() {
+    var clips = [
+      ['letters', 'Τα γράμματα', 'The letters: άλφα, βήτα, γάμα, δέλτα'],
+      ['word', 'Μια λέξη', 'One word: Καλημέρα!'],
+      ['sent', 'Μια πρόταση', 'A sentence: Τι κάνεις σήμερα;'],
+      ['phrase', 'Μια φράση', 'A phrase: Θα ήθελα έναν καφέ, παρακαλώ.']
+    ];
+    var voices = [
+      ['athina', 'Athina — η σημερινή φωνή', 'Athina, the voice the course uses now'],
+      ['slow', 'Athina — πιο αργή και ζεστή', 'Athina, 15% slower and slightly lower (easier for learners)'],
+      ['nestoras', 'Nestoras — ανδρική φωνή', 'Nestoras, male voice'],
+      ['piper', 'Joy — τοπική φωνή', 'Joy, local/offline voice (Piper)'],
+      ['gtts', 'Google — gTTS', 'Google Translate voice (gTTS)']
+    ];
+    var out = '<h1>Δοκιμή φωνών · Voice test</h1>' +
+      '<p class="lead">Άκουσε την ίδια φράση σε κάθε φωνή και διάλεξε ποια σου ακούγεται πιο καθαρή και πιο σωστή στα ελληνικά. ' +
+      'Η σελίδα είναι <strong>προσωρινή</strong> — μόλις διαλέξεις, ξαναγράφω όλο το μάθημα με αυτή τη φωνή και τη σβήνω.</p>' +
+      '<div class="voice-grid">';
+    voices.forEach(function (v) {
+      out += '<section class="card voice-card"><h2>' + esc(v[1]) + '</h2>' +
+        '<p class="small muted">' + esc(v[2]) + '</p>';
+      clips.forEach(function (c) {
+        out += '<div class="voice-row"><div><span class="gr">' + esc(c[1]) + '</span>' +
+          '<div class="small muted">' + esc(c[2]) + '</div></div>' +
+          '<audio controls preload="none" src="assets/audio/samples/' + v[0] + '_' + c[0] + '.mp3"></audio></div>';
+      });
+      out += '</section>';
+    });
+    out += '</div>';
+    return out;
+  }
 
   function pageGrammar() {
     var g = REF.grammar || {};
