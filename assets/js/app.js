@@ -413,6 +413,11 @@
       '<p class="small"><a href="#/grammar">The complete present-tense guide →</a></p>' +
       '</div></div>' +
 
+      '<div class="scene-grid">' +
+      '<figure class="scene">' + (window.GREEK.art.cafe || '') + '<figcaption>Στο καφενείο · At the café — the scene of Day 14</figcaption></figure>' +
+      '<figure class="scene">' + (window.GREEK.art.map || '') + '<figcaption>Η Αίγινα στον χάρτη · Aegina on the map — where the course begins</figcaption></figure>' +
+      '</div>' +
+
       '<div class="spread" style="margin-bottom:12px"><h2 style="margin:0">The 30-day course</h2>' +
       '<span class="pill blue">' + doneCount() + ' of ' + DAYS.length + ' complete</span></div>' +
       '<div class="grid days">' + dayCards + '</div>' +
