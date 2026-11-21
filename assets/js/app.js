@@ -329,8 +329,36 @@
 
   function afterRender(main) {
     if (typeof main.querySelectorAll !== 'function') return;
+    decorateGreek(main);
     var p = new URLSearchParams(location.search);
     if (p.get('q')) { /* reserved for search */ }
+  }
+
+  /* Google Translate square next to every Greek word, so it can be heard. */
+  function trLink(text) {
+    var a = document.createElement('a');
+    a.className = 'tr-link';
+    a.href = 'https://translate.google.com/?sl=el&tl=en&text=' + encodeURIComponent(text) + '&op=translate';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.title = 'Hear “' + text + '” in Google Translate';
+    a.setAttribute('aria-label', 'Hear “' + text + '” in Google Translate');
+    a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<path d="M11 5 6 18M8.2 12.5h5.6M15.5 9h5M18 9c-.4 3-1.8 5.6-4 7.6M15.6 12.6c1.4 2.3 3.4 3.9 5.9 4.6"/></svg>';
+    return a;
+  }
+
+  function decorateGreek(root) {
+    var nodes = root.querySelectorAll('.gr, .conj .form, .book-lesson h3');
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.querySelector('.tr-link')) continue;
+      if (n.closest('a, button, .tr-link')) continue;
+      var t = n.textContent.replace(/\s+/g, ' ').trim();
+      if (!t || t.length > 120) continue;
+      n.appendChild(trLink(t));
+    }
   }
 
   /* ---------------- shared blocks ---------------- */
@@ -508,7 +536,7 @@
         '<div class="ipa">' + esc(L.ipa) + '</div>' +
         '<div class="hint">' + L.hint + '</div>' +
         '<div class="hint" style="margin-top:6px"><span class="gr">' + esc(L.ex) + '</span> · ' + esc(L.exEn) +
-         + '</div>' +
+        '</div>' +
         '</div>';
     }).join('');
 
@@ -533,6 +561,7 @@
       '</div>' +
       '<h2>Τα γράμματα · The letters</h2>' +
       '<div class="alpha-grid">' + letters + '</div>' +
+      '<p class="small muted" style="margin:10px 0 0">Tap the small square beside a word to hear it in Google Translate (Greek → English).</p>' +
       '<h2 style="margin-top:38px">Two letters, one sound</h2>' +
       '<p class="small muted">Greek builds sounds from pairs of letters. Learn these twelve and you can read almost anything. Watch each pair being pronounced, then read the table aloud.</p>' +
       '<div class="video-grid">' +
@@ -791,7 +820,7 @@
         '<div style="margin-top:16px">' + vocabTable(g.rows) + '</div></div></div>';
     }).join('');
     return '<span class="kicker">Reference</span><h1>Vocabulary</h1>' +
-      '<p class="lead">Themed lists for the situations you meet every week. Read each word aloud twice, cover the English, then test yourself.</p>' +
+      '<p class="lead">Themed lists for the situations you meet every week. Read each word aloud twice, cover the English, then test yourself. Tap the square beside a word to hear it in Google Translate.</p>' +
       '<div data-tabs><div class="tabs">' + tabs + '</div>' + panels + '</div>' +
       '<div class="tip"><p><b>How to learn a list.</b> Read each word aloud three times, cover the English, then say the meaning. ' +
       'Come back to the same list two days later — spacing beats cramming.</p></div>';
@@ -816,7 +845,7 @@
     }).join('');
     return '<span class="kicker">Reference · survival Greek</span><h1>Phrasebook</h1>' +
       '<p class="lead">What to say when you need it — at the airport, the café, the pharmacy or the town hall. ' +
-      'Short phrases, with the polite forms marked.</p>' +
+      'Short phrases, with the polite forms marked. Tap the square beside a phrase to hear it in Google Translate.</p>' +
       '<h2>Watch: greetings · Οι χαιρετισμοί</h2>' +
       '<div class="video-grid">' +
       videoEmbed('LgHRNjvBhNc', 'Οι Χαιρετισμοί Στα Ελληνικά | The Greetings In Greek', 'Μιλάω Ελληνικά') +
