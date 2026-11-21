@@ -386,7 +386,7 @@
       '<div><b>' + DAYS.length + '</b><span>lessons</span></div>' +
       '<div><b>' + totalQs + '+</b><span>exercises</span></div>' +
       '<div><b>' + totalWords + '+</b><span>words</span></div>' +
-      '<div><b>3</b><span>video lessons</span></div>' +
+      '<div><b>7</b><span>video lessons</span></div>' +
       '</div>' +
       '<div class="row" style="margin-top:22px">' +
       '<a class="btn" href="#/day/' + (firstUnfinished()) + '">' + (doneCount() ? 'Continue' : 'Start Day 1') + ' →</a>' +
