@@ -90,11 +90,59 @@ window.Speech = (function () {
     return u;
   }
 
-  /* Play one bundled clip. */
-  function playClip(src, opts) {
+  function spriteFile() { return (window.GREEK && window.GREEK.audioSprite) || ''; }
+
+  /* Play one slice [startMs, durMs] of the shared sprite. */
+  function playSlice(info, opts) {
     opts = opts || {};
     halt();
-    var a = new Audio(src);
+    var start = info[0] / 1000, dur = info[1] / 1000;
+    var a = new Audio(spriteFile());
+    a.preload = 'auto';
+    player = a;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      clearTimeout(a._sliceTimer);
+      if (player === a) player = null;
+      opts.onend && opts.onend();
+    }
+    a.onended = finish;
+    a.onerror = function () {
+      finish();
+      if (!opts.noFallback) speakTTS(opts.text || '', opts);
+    };
+    var tries = 0;
+    function seek() {
+      if (tries > 8) return;
+      tries++;
+      try { a.currentTime = start; } catch (e) {}
+    }
+    a.addEventListener('timeupdate', function () {
+      // Some servers cannot seek mid-download; retry until the clip really starts.
+      if (!done && a.currentTime < start - 0.25) seek();
+    });
+    var go = function () {
+      seek();
+      var p = a.play();
+      if (p && p.catch) p.catch(function () { finish(); if (!opts.noFallback) speakTTS(opts.text || '', opts); });
+      a._sliceTimer = setTimeout(function () {
+        try { a.pause(); } catch (e) {}
+        finish();
+      }, Math.max(150, dur * 1000 + 80));
+    };
+    if (a.readyState >= 1) go();
+    else a.addEventListener('loadedmetadata', go, { once: true });
+    return a;
+  }
+
+  /* Play one bundled clip: a sprite slice [start, dur] or a standalone file. */
+  function playClip(info, opts) {
+    if (info && typeof info === 'object') return playSlice(info, opts);
+    opts = opts || {};
+    halt();
+    var a = new Audio(info);
     a.preload = 'auto';
     player = a;
     a.onended = function () { if (player === a) player = null; opts.onend && opts.onend(); };
