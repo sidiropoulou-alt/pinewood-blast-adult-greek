@@ -1,4 +1,4 @@
-/* Greek for Beginners — lessons 23–30 */
+/* Pinewood BLAST Adult Greek — lessons 23–30 */
 (function () {
   var G = window.GREEK = window.GREEK || {};
   G.days = (G.days || []).concat([

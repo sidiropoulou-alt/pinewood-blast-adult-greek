@@ -85,6 +85,7 @@
       '<div class="card"><div class="spread"><h3 style="margin:0">Today you will…</h3>' +
       (d.level ? '<span class="pill blue">' + esc(d.level) + '</span>' : '') + '</div>' +
       '<ul class="small" style="padding-left:1.15em;margin:10px 0 0">' + goals + '</ul></div>' +
+      '<div class="teacher-slot">' + (window.teacherCard ? window.teacherCard(d.day % 2 ? 'filiana' : 'martha', { index: d.day }) : '') + '</div>' +
       (d.sections || []).map(section).join('') +
       (homework ? '<div class="card" style="border-left:4px solid var(--gold)"><h3 style="margin:0 0 6px">Homework · Εργασία</h3>' +
         '<ol class="small" style="padding-left:1.2em;margin:0">' + homework + '</ol>' +

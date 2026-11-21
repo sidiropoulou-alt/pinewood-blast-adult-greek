@@ -1,5 +1,5 @@
 /* =========================================================================
-   Greek for Beginners — app shell, router and page renderers
+   Pinewood BLAST Adult Greek — app shell, router and page renderers
    ========================================================================= */
 (function () {
   'use strict';
@@ -66,6 +66,50 @@
     paintChrome();
     toast('Μπράβο! Day ' + day + ' marked as complete. ✓');
   }
+
+  /* ---------------- teacher faces ---------------- */
+  var teacherTurns = {};
+  document.addEventListener('click', function (e) {
+    var face = e.target.closest('[data-teacher-face]');
+    if (!face) return;
+    var id = face.getAttribute('data-teacher-face');
+    var t = window.TEACHERS && window.TEACHERS[id];
+    if (!t) return;
+    e.preventDefault();
+    var block = face.closest('.teacher');
+    if (block) {
+      var nextI = (Number(block.getAttribute('data-tip-i') || 0) + 1) % t.tips.length;
+      var tip = t.tips[nextI];
+      block.setAttribute('data-tip-i', nextI);
+      var tipEl = block.querySelector('[data-tip]');
+      var grEl = block.querySelector('.teacher-gr .gr');
+      var sayEl = block.querySelector('[data-say]');
+      if (tipEl) tipEl.textContent = tip.en;
+      if (grEl) grEl.textContent = tip.gr;
+      if (sayEl) sayEl.setAttribute('data-say', tip.gr);
+      if (window.Speech) Speech.speak(tip.gr);
+      block.classList.add('pop');
+      setTimeout(function () { block.classList.remove('pop'); }, 400);
+      return;
+    }
+    var pair = face.closest('.pair-item');
+    if (pair) {
+      var turn = teacherTurns[id] || 0;
+      var tip2 = t.tips[turn % t.tips.length];
+      teacherTurns[id] = turn + 1;
+      var box = document.querySelector('[data-pair-bubble]');
+      if (!box) return;
+      box.querySelector('.who').textContent = t.name + ': ';
+      box.querySelector('.what').textContent = tip2.en + ' ';
+      box.querySelector('[data-pair-gr]').textContent = tip2.gr;
+      var b2 = box.querySelector('[data-say]');
+      b2.setAttribute('data-say', tip2.gr);
+      box.classList.add('show');
+      if (window.Speech) Speech.speak(tip2.gr);
+      face.parentNode.classList.add('pop');
+      setTimeout(function () { face.parentNode.classList.remove('pop'); }, 400);
+    }
+  });
 
   /* ---------------- audio wiring ---------------- */
   document.addEventListener('click', function (e) {
@@ -177,6 +221,7 @@
     else if (r.name === 'vocab') html = pageVocab();
     else if (r.name === 'phrasebook') html = pagePhrasebook();
     else if (r.name === 'dialogues') html = pageDialogues();
+    else if (r.name === 'book') html = pageBook();
     else if (r.name === 'progress') html = pageProgress();
     else html = pageHome();
 
@@ -197,7 +242,7 @@
     if (r.name === 'day') link = $('#navDays a[data-day="' + r.arg + '"]');
     if (link) link.classList.add('active');
     var h = main.querySelector('h1');
-    document.title = (h ? h.textContent.replace(/\s+/g, ' ').trim() + ' · ' : '') + 'Greek for Beginners';
+    document.title = (h ? h.textContent.replace(/\s+/g, ' ').trim() + ' · ' : '') + 'Pinewood BLAST Adult Greek';
   }
 
   window.addEventListener('hashchange', render);
@@ -288,6 +333,16 @@
     var scoreEl = $('[data-score="' + id + '"]', quiz);
     scoreEl.textContent = correct + ' / ' + data.items.length + ' (' + pct + '%)';
     scoreEl.className = 'score ' + (pct >= 60 ? 'pass' : 'fail');
+    if (window.teacherFeedback) {
+      var holder = $('[data-teacher-fb]', quiz);
+      if (!holder) {
+        holder = document.createElement('div');
+        holder.setAttribute('data-teacher-fb', '');
+        var foot0 = $('.quiz-foot', quiz);
+        foot0.parentNode.insertBefore(holder, foot0.nextSibling);
+      }
+      holder.innerHTML = window.teacherFeedback(pct);
+    }
     if (pct >= 60) {
       var foot = $('.quiz-foot', quiz);
       if (!$('[data-complete]', foot)) {
@@ -380,10 +435,11 @@
 
     return '<section class="hero">' +
       '<div class="hero-inner">' +
-      '<span class="kicker">Αρχάριοι · A1 beginner · for adults</span>' +
+      '<span class="kicker">Pinewood BLAST · Adult Greek · A1</span>' +
       '<h1>Learn Greek, one small day at a time</h1>' +
-      '<p class="lead">A complete 30-day introduction to Modern Greek for English-speaking adults. ' +
-      'Start with the alphabet, master the present tense, and build the everyday language you need for travel, work and real conversations.</p>' +
+      '<p class="lead">A 30-day practice companion for our class using <i>Greek for you A1</i>. ' +
+      'You have finished lessons 1–10 — here you revise every one of them, learn the present tense properly, ' +
+      'and build the everyday Greek you need for travel, work and real conversations.</p>' +
       '<div class="hero-stats">' +
       '<div><b>' + DAYS.length + '</b><span>lessons</span></div>' +
       '<div><b>' + totalQs + '+</b><span>exercises</span></div>' +
@@ -413,6 +469,19 @@
       '<p class="small"><a href="#/grammar">The complete present-tense guide →</a></p>' +
       '</div></div>' +
 
+      '<div class="card" style="margin:0 0 26px"><h3 style="margin-top:0">How adults learn a language best</h3>' +
+      '<p class="small muted" style="margin:0 0 12px">Six habits that matter more than talent — all of them fit around a job and a family.</p>' +
+      '<div class="grid three">' +
+      '<div><b class="small">1 · Little and often</b><p class="small" style="margin:.3em 0 0">Fifteen minutes six days a week beats two hours on Sunday. Your brain keeps Greek alive between sessions.</p></div>' +
+      '<div><b class="small">2 · Say it out loud</b><p class="small" style="margin:.3em 0 0">Reading silently builds recognition, not speech. Repeat every 🔊 until your mouth knows the shape of the word.</p></div>' +
+      '<div><b class="small">3 · Learn phrases, not lists</b><p class="small" style="margin:.3em 0 0">Store <span class="gr">Θα ήθελα έναν καφέ, παρακαλώ</span> as one block. Grammar comes later from the blocks you already own.</p></div>' +
+      '<div><b class="small">4 · Keep one notebook</b><p class="small" style="margin:.3em 0 0">Three columns: Greek, English, and a sentence of your own. Writing by hand slows you down enough to notice endings.</p></div>' +
+      '<div><b class="small">5 · Make mistakes early</b><p class="small" style="margin:.3em 0 0">Adults wait to be perfect; children just talk. A wrong ending that gets you a coffee is a success, not a failure.</p></div>' +
+      '<div><b class="small">6 · Use it this week</b><p class="small" style="margin:.3em 0 0">Order in Greek, label the kitchen, change your phone language, greet a Greek neighbour. Real use is what turns study into knowledge.</p></div>' +
+      '</div></div>' +
+
+      (window.teacherPair ? window.teacherPair() : '') +
+
       '<div class="scene-grid">' +
       '<figure class="scene">' + (window.GREEK.art.cafe || '') + '<figcaption>Στο καφενείο · At the café — the scene of Day 14</figcaption></figure>' +
       '<figure class="scene">' + (window.GREEK.art.map || '') + '<figcaption>Η Αίγινα στον χάρτη · Aegina on the map — where the course begins</figcaption></figure>' +
@@ -425,10 +494,11 @@
       '<h2 style="margin-top:38px">Reference library</h2>' +
       '<div class="grid three">' +
       refCard('#/alphabet', '🔤', 'Alphabet &amp; sounds', '24 letters, digraphs, stress, reading rules.') +
+      refCard('#/book', '📘', 'Book map · lessons 1–10', 'What you already know from Greek for you A1, with 100 words.') +
       refCard('#/grammar', '📐', 'Present tense', 'Every ending, every irregular verb, explained in English.') +
       refCard('#/vocab', '📚', 'Vocabulary', 'Themed word lists with audio — food, travel, health, work.') +
       refCard('#/phrasebook', '💬', 'Phrasebook', 'What to say at the airport, café, doctor, hotel.') +
-      refCard('#/dialogues', '🗣️', 'Dialogues', 'Twelve conversations with play-all audio.') +
+      refCard('#/dialogues', '🗣️', 'Dialogues', 'Sixteen conversations with play-all audio.') +
       refCard('#/progress', '📊', 'My progress', 'Your month at a glance.') +
       '</div>' +
 
@@ -440,8 +510,8 @@
       '<p class="small"><b>Progress</b> is stored in this browser only. In a shared preview it may not be kept — for a month of study, ' +
       'download the site and open it on your own device.</p></div>' +
 
-      '<p class="footer-note">Made for adult learners of Modern Greek. Content follows the structure of <i>Greek for Beginners · Lesson 1</i> ' +
-      '(alphabet, Unit 1: Aegina) and extends it into a full month of study.</p>';
+      '<p class="footer-note">Pinewood BLAST Adult Greek · a practice companion for our class using <i>Greek for you A1</i>. ' +
+      'Covers the alphabet, lessons 1–10 of the book, the present tense, and a full month of everyday practice.</p>';
   }
 
   function refCard(href, icon, title, text) {
@@ -787,6 +857,46 @@
           '<h2 style="margin:0">' + esc(d.title) + '</h2><span class="pill">' + esc(d.level || 'A1') + '</span></div>' +
           '<p class="small muted" style="margin-bottom:12px">' + esc(d.setting) + '</p>' + dialogueBlock(d) + '</div>';
       }).join('');
+  }
+
+  /* ---------------- BOOK MAP: Greek for you A1, lessons 1–10 ---------------- */
+  function pageBook() {
+    var B = window.GREEK.book;
+    if (!B) return '<span class="kicker">Book map</span><h1>Book map</h1><p class="lead">The book map is still loading.</p>';
+    var lessons = B.lessons.map(function (l) {
+      var links = l.days.map(function (n) {
+        var d = null;
+        for (var i = 0; i < DAYS.length; i++) if (DAYS[i].day === n) { d = DAYS[i]; break; }
+        return '<a href="#/day/' + n + '">Day ' + n + ((d && d.title) ? ' · ' + esc(d.title) : '') + '</a>';
+      }).join(' · ');
+      return '<div class="card book-lesson" id="lesson-' + l.n + '">' +
+        '<div class="spread" style="align-items:flex-start"><div>' +
+        '<span class="pill blue">Lesson ' + l.n + '</span>' +
+        '<h3 style="margin:.5em 0 .15em">' + esc(l.gr) + '</h3>' +
+        '<p class="tiny muted" style="margin:0">' + esc(l.en) + '</p></div>' +
+        '<span class="pill">' + l.words.length + ' words</span></div>' +
+        '<p class="small" style="margin:1em 0 .3em"><b>You can now…</b></p>' +
+        '<ul class="small" style="margin:0 0 14px;padding-left:1.15em">' +
+        l.can.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
+        '<p class="small" style="margin:0 0 6px"><b>Λεξιλόγιο · Vocabulary</b></p>' +
+        vocabTable(l.words) +
+        '<p class="tiny" style="margin:12px 0 0;color:var(--muted)">Revise it on this site: ' + links + '</p>' +
+        '</div>';
+    }).join('');
+
+    return '<span class="kicker">Book map · Greek for you A1</span>' +
+      '<h1>Lessons 1–10: what you already know</h1>' +
+      '<p class="lead">You have finished the first ten lessons of <i>Greek for you A1</i>. ' +
+      'Here is the whole of it in one place: the ten lessons, what each one lets you do, and <b>' + B.wordCount +
+      ' key words</b> with audio — plus the days of this site that revise them.</p>' +
+      '<div class="note-box" style="margin-bottom:22px"><p class="small" style="margin:0">' + B.note + '</p></div>' +
+      (window.teacherPair ? window.teacherPair() : '') +
+      '<div class="book-grid">' + lessons + '</div>' +
+      '<div class="card" style="margin-top:22px;border-left:4px solid var(--gold)">' +
+      '<h3 style="margin:0 0 6px">' + esc(B.next.title) + '</h3>' +
+      '<p class="small" style="margin:0">' + B.next.text + '</p></div>' +
+      '<p class="tiny muted" style="margin-top:18px">Words are given in the form you will use in class. ' +
+      'Tap 🔊 on any row to hear it, and say it back twice before you move on.</p>';
   }
 
   function pageProgress() {

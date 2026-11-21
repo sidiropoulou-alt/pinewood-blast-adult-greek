@@ -1,4 +1,4 @@
-/* Greek for Beginners — reference data: vocabulary, grammar drill, phrasebook, dialogues */
+/* Pinewood BLAST Adult Greek — reference data: vocabulary, grammar drill, phrasebook, dialogues */
 (function () {
   var G = window.GREEK = window.GREEK || {};
   var REF = G.ref = G.ref || {};
