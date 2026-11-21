@@ -539,6 +539,7 @@
       refCard('#/phrasebook', '💬', 'Phrasebook', 'What to say at the airport, café, doctor, hotel.') +
       refCard('#/dialogues', '🗣️', 'Dialogues', 'Sixteen conversations with play-all audio.') +
       refCard('#/progress', '📊', 'My progress', 'Your month at a glance.') +
+      refCard('#/voices', '🎧', 'Voice test · Δοκιμή φωνών', 'Temporary: compare five Greek voices and pick the one for the course.') +
       '</div>' +
 
       '<div class="note-box" style="margin-top:26px">' +
